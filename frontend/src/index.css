@@ -1,0 +1,292 @@
+/* Spatial Builder Design System
+   Clean-Industrial Minimalism with Deep-Space Theme
+   Inspired by Figma, Linear, Framer
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Deep Space Color Palette */
+    --background: 228 12% 5%;
+    --foreground: 220 20% 95%;
+
+    --card: 228 12% 8%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 228 15% 10%;
+    --popover-foreground: 220 20% 95%;
+
+    /* Electric Blue Accent */
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 20% 98%;
+    --primary-glow: 217 91% 65%;
+
+    --secondary: 228 12% 14%;
+    --secondary-foreground: 220 20% 85%;
+
+    --muted: 228 10% 18%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 220 20% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Browser chrome colors */
+    --chrome-red: 0 72% 51%;
+    --chrome-yellow: 45 93% 58%;
+    --chrome-green: 142 71% 45%;
+
+    /* Subtle borders with low opacity */
+    --border: 220 15% 20%;
+    --input: 228 12% 12%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.5rem;
+
+    /* Glass effects */
+    --glass-bg: 228 15% 8% / 0.8;
+    --glass-border: 0 0% 100% / 0.06;
+    --glass-highlight: 0 0% 100% / 0.03;
+
+    /* Canvas specific */
+    --canvas-bg: 228 15% 4%;
+    --canvas-grid: 220 15% 12%;
+    --canvas-selection: 217 91% 60%;
+
+    /* Interactive states */
+    --hover-glow: 217 91% 60% / 0.15;
+    --active-glow: 217 91% 60% / 0.25;
+
+    /* Sidebar */
+    --sidebar-background: 228 12% 6%;
+    --sidebar-foreground: 220 20% 85%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 220 20% 98%;
+    --sidebar-accent: 228 12% 12%;
+    --sidebar-accent-foreground: 220 20% 90%;
+    --sidebar-border: 220 15% 15%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    /* Same as root - this is a dark-first design */
+    --background: 228 12% 5%;
+    --foreground: 220 20% 95%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.011em;
+  }
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  /* Glassmorphism panels */
+  .glass-panel {
+    @apply bg-card/80 backdrop-blur-xl border border-white/[0.06] shadow-2xl;
+  }
+
+  .glass-panel-subtle {
+    @apply bg-card/60 backdrop-blur-md border border-white/[0.04];
+  }
+
+  /* Glowing effects */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4),
+                0 0 40px hsl(var(--primary) / 0.2),
+                0 0 60px hsl(var(--primary) / 0.1);
+  }
+
+  .glow-subtle {
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.2);
+  }
+
+  /* Interactive element base */
+  .interactive {
+    @apply transition-all duration-150 ease-out;
+  }
+
+  .interactive:hover {
+    @apply bg-white/[0.04];
+  }
+
+  .interactive:active {
+    @apply bg-white/[0.08] scale-[0.98];
+  }
+
+  /* Canvas element selection */
+  .canvas-element {
+    @apply relative transition-all duration-100;
+  }
+
+  .canvas-element:hover::before {
+    content: '';
+    @apply absolute inset-0 border-2 border-primary/60 rounded-md pointer-events-none;
+  }
+
+  .canvas-element.selected::before {
+    content: '';
+    @apply absolute inset-0 border-2 border-primary rounded-md pointer-events-none;
+  }
+
+  /* Resize handles */
+  .resize-handle {
+    @apply absolute w-2.5 h-2.5 bg-primary rounded-sm border border-primary-foreground/20;
+    @apply transition-transform duration-100 hover:scale-125;
+  }
+
+  /* Command palette styling */
+  .command-overlay {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50;
+  }
+
+  .command-dialog {
+    @apply glass-panel rounded-xl overflow-hidden max-w-xl w-full;
+    @apply shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)];
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply bg-muted/50 animate-pulse rounded;
+  }
+
+  /* Dense grid layout for component library */
+  .component-grid {
+    @apply grid grid-cols-2 gap-2 p-2;
+  }
+
+  .component-card {
+    @apply aspect-square rounded-lg bg-secondary/50 border border-white/[0.04];
+    @apply flex items-center justify-center cursor-grab;
+    @apply transition-all duration-150 hover:bg-secondary hover:border-primary/30;
+    @apply active:cursor-grabbing active:scale-95;
+  }
+
+  /* Property panel inputs */
+  .property-input {
+    @apply h-7 bg-input border-white/[0.06] text-xs font-medium;
+    @apply focus:border-primary/50 focus:ring-1 focus:ring-primary/30;
+  }
+
+  .property-label {
+    @apply text-[10px] uppercase tracking-wider text-muted-foreground font-medium;
+  }
+
+  /* AI Terminal styling */
+  .ai-terminal {
+    @apply font-mono text-xs leading-relaxed;
+  }
+
+  .ai-terminal .reasoning {
+    @apply text-muted-foreground italic;
+  }
+
+  .ai-terminal .action {
+    @apply text-primary font-medium;
+  }
+
+  .ai-terminal .success {
+    @apply text-emerald-400;
+  }
+
+  /* Bento layout */
+  .bento-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  /* High-density list items */
+  .dense-list-item {
+    @apply flex items-center gap-2 px-2 py-1.5 rounded-md text-sm;
+    @apply cursor-pointer transition-colors duration-100;
+    @apply hover:bg-white/[0.04] active:bg-white/[0.08];
+  }
+
+  .dense-list-item.active {
+    @apply bg-primary/10 text-primary;
+  }
+}
+
+@layer utilities {
+  /* Text utilities */
+  .text-tight {
+    letter-spacing: -0.02em;
+  }
+
+  .text-tighter {
+    letter-spacing: -0.03em;
+  }
+
+  /* Focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Gradient backgrounds */
+  .gradient-mesh {
+    background: 
+      radial-gradient(at 0% 0%, hsl(var(--primary) / 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsl(var(--primary) / 0.05) 0px, transparent 50%);
+  }
+
+  /* Canvas grid pattern */
+  .canvas-grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--canvas-grid)) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--canvas-grid)) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Subtle noise texture */
+  .noise-texture {
+    position: relative;
+  }
+
+  .noise-texture::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+  }
+}

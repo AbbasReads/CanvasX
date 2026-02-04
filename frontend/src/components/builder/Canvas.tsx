@@ -1,0 +1,322 @@
+import { useRef, useState, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useDroppable } from '@dnd-kit/core';
+import { useBuilder, CanvasElement } from '@/contexts/BuilderContext';
+import { 
+  Layout, 
+  Navigation2, 
+  Type, 
+  Image, 
+  Square, 
+  CreditCard,
+  Sparkles,
+  Trash2
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+interface CanvasItemProps {
+  element: CanvasElement;
+  isSelected: boolean;
+  onSelect: () => void;
+  zoom: number;
+}
+
+function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
+  const { updateElement, removeElement } = useBuilder();
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, elementX: 0, elementY: 0 });
+  const [resizeStart, setResizeStart] = useState({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
+
+  const IconMap: Record<string, React.ElementType> = {
+    section: Layout,
+    navbar: Navigation2,
+    hero: Sparkles,
+    button: Square,
+    text: Type,
+    image: Image,
+    card: CreditCard,
+  };
+
+  const Icon = IconMap[element.type] || Square;
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isResizing) return;
+    e.stopPropagation();
+    onSelect();
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+      elementX: element.x,
+      elementY: element.y,
+    });
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent, corner: string) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({
+      width: element.width,
+      height: element.height,
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        const dx = (e.clientX - dragStart.x) / zoom;
+        const dy = (e.clientY - dragStart.y) / zoom;
+        
+        // Snap to grid (20px)
+        const newX = Math.round((dragStart.elementX + dx) / 20) * 20;
+        const newY = Math.round((dragStart.elementY + dy) / 20) * 20;
+        
+        updateElement(element.id, { x: newX, y: newY });
+      }
+      
+      if (isResizing) {
+        const dx = (e.clientX - resizeStart.mouseX) / zoom;
+        const dy = (e.clientY - resizeStart.mouseY) / zoom;
+        
+        const newWidth = Math.max(40, Math.round((resizeStart.width + dx) / 20) * 20);
+        const newHeight = Math.max(40, Math.round((resizeStart.height + dy) / 20) * 20);
+        
+        updateElement(element.id, { width: newWidth, height: newHeight });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+    };
+
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, isResizing, dragStart, resizeStart, element.id, zoom, updateElement]);
+
+  return (
+    <motion.div
+      className={`absolute rounded-lg border transition-colors ${
+        isSelected 
+          ? 'border-primary shadow-glow-sm' 
+          : 'border-white/[0.08] hover:border-primary/50'
+      } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      style={{
+        left: element.x,
+        top: element.y,
+        width: element.width,
+        height: element.height,
+      }}
+      onMouseDown={handleMouseDown}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      whileHover={{ borderColor: isSelected ? undefined : 'hsl(var(--primary) / 0.5)' }}
+    >
+      {/* Element content */}
+      <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-lg overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <Icon className="w-6 h-6" />
+            <span className="text-xs font-medium">{element.label}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Selection overlay */}
+      {isSelected && (
+        <>
+          {/* Delete button */}
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute -top-3 -right-3 h-6 w-6 rounded-full shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeElement(element.id);
+            }}
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+
+          {/* Resize handles */}
+          {['nw', 'ne', 'sw', 'se'].map((corner) => (
+            <div
+              key={corner}
+              className="resize-handle"
+              style={{
+                top: corner.includes('n') ? -5 : 'auto',
+                bottom: corner.includes('s') ? -5 : 'auto',
+                left: corner.includes('w') ? -5 : 'auto',
+                right: corner.includes('e') ? -5 : 'auto',
+                cursor: `${corner}-resize`,
+              }}
+              onMouseDown={(e) => handleResizeMouseDown(e, corner)}
+            />
+          ))}
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+export function Canvas() {
+  const { elements, selectedId, selectElement, zoom, pan, setPan, addElement } = useBuilder();
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0, panX: 0, panY: 0 });
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'canvas',
+  });
+
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    // Middle click or space + left click for panning
+    if (e.button === 1 || (e.button === 0 && e.target === canvasRef.current)) {
+      if (e.target === canvasRef.current) {
+        selectElement(null);
+      }
+      setIsPanning(true);
+      setPanStart({
+        x: e.clientX,
+        y: e.clientY,
+        panX: pan.x,
+        panY: pan.y,
+      });
+    }
+  };
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      // Zoom logic would go here
+    } else {
+      // Pan with scroll
+      setPan({
+        x: pan.x - e.deltaX,
+        y: pan.y - e.deltaY,
+      });
+    }
+  }, [pan, setPan]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      return () => canvas.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isPanning) {
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        setPan({
+          x: panStart.panX + dx,
+          y: panStart.panY + dy,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsPanning(false);
+    };
+
+    if (isPanning) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isPanning, panStart, setPan]);
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className="flex-1 relative overflow-hidden bg-canvas"
+    >
+      {/* Grid background */}
+      <div 
+        className="absolute inset-0 canvas-grid-pattern opacity-30"
+        style={{
+          backgroundPosition: `${pan.x % 20}px ${pan.y % 20}px`,
+          backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
+        }}
+      />
+
+      {/* Canvas workspace */}
+      <div
+        ref={canvasRef}
+        className={`absolute inset-0 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
+        onMouseDown={handleCanvasMouseDown}
+      >
+        <motion.div
+          className="absolute origin-top-left"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          }}
+        >
+          {/* Canvas elements */}
+          {elements.map((element) => (
+            <CanvasItem
+              key={element.id}
+              element={element}
+              isSelected={selectedId === element.id}
+              onSelect={() => selectElement(element.id)}
+              zoom={zoom}
+            />
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Drop indicator */}
+      {isOver && (
+        <div className="absolute inset-0 border-2 border-dashed border-primary/50 bg-primary/5 pointer-events-none" />
+      )}
+
+      {/* Canvas info */}
+      <div className="absolute bottom-4 left-4 flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="px-2 py-1 rounded bg-card/80 backdrop-blur-sm border border-white/[0.06]">
+          {elements.length} elements
+        </span>
+        <span className="px-2 py-1 rounded bg-card/80 backdrop-blur-sm border border-white/[0.06]">
+          Pan: {Math.round(pan.x)}, {Math.round(pan.y)}
+        </span>
+      </div>
+
+      {/* Empty state */}
+      {elements.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Layout className="w-8 h-8 text-primary/50" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground/80 mb-1">Start Building</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Drag components from the left panel or use ⌘K to add elements
+            </p>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+}
