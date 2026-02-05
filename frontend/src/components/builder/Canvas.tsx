@@ -7,7 +7,6 @@ import {
   Layout,
   Trash2
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface CanvasItemProps {
   element: CanvasElement;
@@ -115,18 +114,24 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
       {/* Selection overlay - Only in edit mode */}
       {!previewMode && isSelected && (
         <>
-          {/* Delete button */}
-          <Button
-            variant="destructive"
-            size="icon"
-            className="absolute -top-3 -right-3 h-6 w-6 rounded-full shadow-lg z-10"
+          {/* Delete button - Positioned above with proper styling */}
+          <motion.button
+            className="absolute -top-8 left-1/2 -translate-x-1/2 h-6 px-2 rounded-md flex items-center gap-1 text-xs font-medium z-20"
+            style={{
+              backgroundColor: '#1c1c2a',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#ef4444',
+            }}
             onClick={(e) => {
               e.stopPropagation();
               removeElement(element.id);
             }}
+            whileHover={{ backgroundColor: '#ef4444', color: 'white' }}
+            whileTap={{ scale: 0.95 }}
           >
             <Trash2 className="w-3 h-3" />
-          </Button>
+            <span>Delete</span>
+          </motion.button>
 
           {/* Resize handles */}
           {['nw', 'ne', 'sw', 'se'].map((corner) => (
@@ -150,7 +155,7 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
 }
 
 export function Canvas() {
-  const { elements, selectedId, selectElement, zoom, pan, setPan, addElement } = useBuilder();
+  const { elements, selectedId, selectElement, zoom, setZoom, pan, setPan, addElement, activeTool } = useBuilder();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0, panX: 0, panY: 0 });
@@ -166,11 +171,14 @@ export function Canvas() {
   }, [setDroppableRef]);
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    // Middle click or space + left click for panning
-    if (e.button === 1 || (e.button === 0 && e.target === canvasRef.current)) {
-      if (e.target === canvasRef.current) {
-        selectElement(null);
-      }
+    // Hand tool panning or middle click
+    const shouldPan = activeTool === 'hand' || e.button === 1;
+    
+    if (e.button === 0 && e.target === canvasRef.current) {
+      selectElement(null);
+    }
+    
+    if (shouldPan) {
       setIsPanning(true);
       setPanStart({
         x: e.clientX,
@@ -184,7 +192,10 @@ export function Canvas() {
   const handleWheel = useCallback((e: WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
-      // Zoom logic would go here
+      // Pinch-to-zoom support
+      const delta = -e.deltaY * 0.001;
+      const newZoom = Math.max(0.25, Math.min(2, zoom + delta));
+      setZoom(newZoom);
     } else {
       // Pan with scroll
       setPan({
@@ -192,7 +203,7 @@ export function Canvas() {
         y: pan.y - e.deltaY,
       });
     }
-  }, [pan, setPan]);
+  }, [pan, setPan, zoom, setZoom]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -246,7 +257,7 @@ export function Canvas() {
 
       {/* Canvas workspace */}
       <div
-        className={`absolute inset-0 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
+        className={`absolute inset-0 ${activeTool === 'hand' ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'}`}
         onMouseDown={handleCanvasMouseDown}
       >
         <motion.div
@@ -255,16 +266,46 @@ export function Canvas() {
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
           }}
         >
-          {/* Canvas elements */}
-          {elements.map((element) => (
-            <CanvasItem
-              key={element.id}
-              element={element}
-              isSelected={selectedId === element.id}
-              onSelect={() => selectElement(element.id)}
-              zoom={zoom}
-            />
-          ))}
+          {/* Desktop Frame */}
+          <div 
+            className="desktop-frame"
+            style={{
+              width: 1440,
+              height: 900,
+              position: 'relative',
+            }}
+          >
+            {/* Browser Chrome */}
+            <div className="desktop-frame-chrome">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-[hsl(var(--chrome-red))]" />
+                  <div className="w-3 h-3 rounded-full bg-[hsl(var(--chrome-yellow))]" />
+                  <div className="w-3 h-3 rounded-full bg-[hsl(var(--chrome-green))]" />
+                </div>
+              </div>
+              <div className="flex-1 mx-4">
+                <div className="h-6 bg-white/[0.06] rounded-md flex items-center px-3">
+                  <span className="text-[10px] text-muted-foreground/60">https://preview.yoursite.com</span>
+                </div>
+              </div>
+              <div className="w-16" />
+            </div>
+            
+            {/* Desktop Content Area */}
+            <div className="desktop-frame-content">
+              {/* Canvas elements */}
+              {elements.map((element) => (
+                <CanvasItem
+                  key={element.id}
+                  element={element}
+                  isSelected={selectedId === element.id}
+                  onSelect={() => selectElement(element.id)}
+                  zoom={zoom}
+                />
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
 

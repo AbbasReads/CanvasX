@@ -18,21 +18,46 @@ interface HistoryState {
   timestamp: number;
 }
 
+type ToolType = 'select' | 'hand';
+
+// Theme/Color palette types
+export interface ThemePalette {
+  id: string;
+  name: string;
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  foreground: string;
+}
+
+export const themePalettes: ThemePalette[] = [
+  { id: 'midnight', name: 'Midnight', primary: '#3b82f6', secondary: '#1e293b', accent: '#8b5cf6', background: '#0f172a', foreground: '#f8fafc' },
+  { id: 'ocean', name: 'Ocean', primary: '#0ea5e9', secondary: '#0c4a6e', accent: '#06b6d4', background: '#082f49', foreground: '#f0f9ff' },
+  { id: 'forest', name: 'Forest', primary: '#22c55e', secondary: '#14532d', accent: '#84cc16', background: '#052e16', foreground: '#f0fdf4' },
+  { id: 'sunset', name: 'Sunset', primary: '#f97316', secondary: '#431407', accent: '#eab308', background: '#1c1917', foreground: '#fef3c7' },
+  { id: 'rose', name: 'Rose', primary: '#f43f5e', secondary: '#4c0519', accent: '#ec4899', background: '#1f1f1f', foreground: '#ffe4e6' },
+  { id: 'neutral', name: 'Neutral', primary: '#6b7280', secondary: '#1f2937', accent: '#9ca3af', background: '#111827', foreground: '#f9fafb' },
+];
+
 interface BuilderContextType {
   // Canvas state
   elements: CanvasElement[];
   selectedId: string | null;
   zoom: number;
   pan: { x: number; y: number };
+  activeTool: ToolType;
 
   // Actions
   setElements: (elements: CanvasElement[]) => void;
   addElement: (element: CanvasElement) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
   removeElement: (id: string) => void;
+  reorderElements: (fromIndex: number, toIndex: number) => void;
   selectElement: (id: string | null) => void;
   setZoom: (zoom: number) => void;
   setPan: (pan: { x: number; y: number }) => void;
+  setActiveTool: (tool: ToolType) => void;
 
   // History
   undo: () => void;
@@ -53,6 +78,16 @@ interface BuilderContextType {
   setPreviewMode: (preview: boolean) => void;
   exportDialogOpen: boolean;
   setExportDialogOpen: (open: boolean) => void;
+
+  // Theme
+  activeTheme: ThemePalette;
+  setActiveTheme: (theme: ThemePalette) => void;
+
+  // Sidebar widths
+  leftSidebarWidth: number;
+  setLeftSidebarWidth: (width: number) => void;
+  rightSidebarWidth: number;
+  setRightSidebarWidth: (width: number) => void;
 }
 
 const BuilderContext = createContext<BuilderContextType | null>(null);
@@ -63,6 +98,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [activeTool, setActiveTool] = useState<ToolType>('select');
 
   // History for undo/redo
   const [history, setHistory] = useState<HistoryState[]>([{ elements: [], timestamp: Date.now() }]);
@@ -76,6 +112,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // Preview & Export
   const [previewMode, setPreviewMode] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Theme
+  const [activeTheme, setActiveTheme] = useState<ThemePalette>(themePalettes[0]);
+
+  // Sidebar widths
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(224);
+  const [rightSidebarWidth, setRightSidebarWidth] = useState(280);
 
   // Tambo context helpers - expose updateElement to AI tools
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
@@ -117,6 +160,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     pushHistory(newElements);
     if (selectedId === id) setSelectedId(null);
   }, [elements, selectedId, pushHistory]);
+
+  const reorderElements = useCallback((fromIndex: number, toIndex: number) => {
+    const newElements = [...elements];
+    const [movedElement] = newElements.splice(fromIndex, 1);
+    newElements.splice(toIndex, 0, movedElement);
+    setElementsInternal(newElements);
+    pushHistory(newElements);
+  }, [elements, pushHistory]);
 
   const selectElement = useCallback((id: string | null) => {
     setSelectedId(id);
@@ -160,13 +211,16 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     selectedId,
     zoom,
     pan,
+    activeTool,
     setElements,
     addElement,
     updateElement,
     removeElement,
+    reorderElements,
     selectElement,
     setZoom,
     setPan,
+    setActiveTool,
     undo,
     redo,
     canUndo: historyIndex > 0,
@@ -181,6 +235,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     setPreviewMode,
     exportDialogOpen,
     setExportDialogOpen,
+    activeTheme,
+    setActiveTheme,
+    leftSidebarWidth,
+    setLeftSidebarWidth,
+    rightSidebarWidth,
+    setRightSidebarWidth,
   };
 
   return (

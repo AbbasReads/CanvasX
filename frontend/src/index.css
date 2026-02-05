@@ -244,6 +244,25 @@
   .dense-list-item.active {
     @apply bg-primary/10 text-primary;
   }
+
+  /* Desktop Frame - Browser viewport mockup */
+  .desktop-frame {
+    @apply bg-[#0a0a0f] rounded-xl overflow-hidden;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 25px 50px -12px rgba(0, 0, 0, 0.8),
+      0 0 80px rgba(0, 0, 0, 0.5);
+  }
+
+  .desktop-frame-chrome {
+    @apply h-10 bg-[#1a1a24] flex items-center px-4 border-b border-white/[0.06];
+  }
+
+  .desktop-frame-content {
+    @apply relative;
+    height: calc(100% - 40px);
+    background: linear-gradient(180deg, #0f0f16 0%, #0a0a0f 100%);
+  }
 }
 
 @layer utilities {

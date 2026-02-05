@@ -4,7 +4,7 @@ import {
   PanelRightClose,
   PanelRight,
   Palette,
-  Type,
+  Type, 
   Move,
   Box,
   Send,
@@ -35,13 +35,16 @@ export function RightSidebar() {
     selectedId,
     updateElement,
     rightSidebarOpen,
-    setRightSidebarOpen
+    setRightSidebarOpen,
+    rightSidebarWidth,
+    setRightSidebarWidth
   } = useBuilder();
 
   const [aiInput, setAiInput] = useState('');
   // Store chat history per element ID
   const [chatHistoryByElement, setChatHistoryByElement] = useState<Record<string, AILogEntry[]>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
 
   const selectedElement = elements.find(el => el.id === selectedId);
 
@@ -136,13 +139,40 @@ Use the modify_element tool to make the requested changes to this element.`;
   }
 
   return (
-    <motion.aside
-      className="w-72 glass-panel border-l border-white/[0.06] flex flex-col overflow-hidden"
-      initial={{ width: 0, opacity: 0 }}
-      animate={{ width: 288, opacity: 1 }}
-      exit={{ width: 0, opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
+    <div className="relative flex">
+      {/* Resize handle */}
+      <div
+        className="w-1 cursor-col-resize hover:bg-primary/50 transition-colors absolute left-0 top-0 bottom-0 z-10"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setIsResizing(true);
+          const startX = e.clientX;
+          const startWidth = rightSidebarWidth;
+          
+          const handleMouseMove = (moveEvent: MouseEvent) => {
+            const newWidth = Math.max(240, Math.min(480, startWidth - (moveEvent.clientX - startX)));
+            setRightSidebarWidth(newWidth);
+          };
+          
+          const handleMouseUp = () => {
+            setIsResizing(false);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+          };
+          
+          document.addEventListener('mousemove', handleMouseMove);
+          document.addEventListener('mouseup', handleMouseUp);
+        }}
+      />
+      
+      <motion.aside
+        className="glass-panel border-l border-white/[0.06] flex flex-col overflow-hidden"
+        initial={{ width: 0, opacity: 0 }}
+        animate={{ width: rightSidebarWidth, opacity: 1 }}
+        exit={{ width: 0, opacity: 0 }}
+        transition={{ duration: isResizing ? 0 : 0.2 }}
+        style={{ width: rightSidebarWidth }}
+      >
       {/* Property Inspector - Top Half */}
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {/* Header */}
@@ -398,5 +428,6 @@ Use the modify_element tool to make the requested changes to this element.`;
         </form>
       </div>
     </motion.aside>
+    </div>
   );
 }

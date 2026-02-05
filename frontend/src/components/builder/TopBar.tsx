@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronRight,
   Users,
@@ -12,9 +13,12 @@ import {
   Eye,
   EyeOff,
   Code,
-  Pencil
+  Hand,
+  MousePointer2,
+  Palette,
+  Check
 } from 'lucide-react';
-import { useBuilder } from '@/contexts/BuilderContext';
+import { useBuilder, themePalettes } from '@/contexts/BuilderContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -35,8 +39,14 @@ export function TopBar() {
     setCommandPaletteOpen,
     previewMode,
     setPreviewMode,
-    setExportDialogOpen
+    setExportDialogOpen,
+    activeTool,
+    setActiveTool,
+    activeTheme,
+    setActiveTheme
   } = useBuilder();
+
+  const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
 
   return (
     <motion.header
@@ -67,6 +77,36 @@ export function TopBar() {
 
       {/* Center section: Tools */}
       <div className="flex items-center gap-1">
+        {/* Tool selection */}
+        <div className="flex items-center gap-0.5 mr-2 px-1 py-0.5 rounded-md bg-secondary/50 border border-white/[0.04]">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={activeTool === 'select' ? 'default' : 'ghost'}
+                size="icon"
+                className={`h-7 w-7 ${activeTool === 'select' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTool('select')}
+              >
+                <MousePointer2 className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Select Tool (V)</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={activeTool === 'hand' ? 'default' : 'ghost'}
+                size="icon"
+                className={`h-7 w-7 ${activeTool === 'hand' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTool('hand')}
+              >
+                <Hand className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Hand Tool (H)</TooltipContent>
+          </Tooltip>
+        </div>
+
         {/* Undo/Redo */}
         <div className="flex items-center gap-0.5 mr-2">
           <Tooltip>
@@ -134,6 +174,69 @@ export function TopBar() {
           </TooltipTrigger>
           <TooltipContent>Command Palette (⌘K)</TooltipContent>
         </Tooltip>
+
+        {/* Theme/Palette selector */}
+        <div className="relative ml-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
+              >
+                <Palette className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Color Theme</TooltipContent>
+          </Tooltip>
+
+          <AnimatePresence>
+            {themeDropdownOpen && (
+              <>
+                {/* Backdrop */}
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setThemeDropdownOpen(false)} 
+                />
+                {/* Dropdown */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full right-0 mt-2 w-48 rounded-lg glass-panel border border-white/[0.08] shadow-xl z-50 p-2"
+                >
+                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">
+                    Color Palette
+                  </div>
+                  {themePalettes.map((theme) => (
+                    <button
+                      key={theme.id}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-white/[0.06] transition-colors ${
+                        activeTheme.id === theme.id ? 'bg-white/[0.08]' : ''
+                      }`}
+                      onClick={() => {
+                        setActiveTheme(theme);
+                        setThemeDropdownOpen(false);
+                      }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.primary }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.accent }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.secondary }} />
+                      </div>
+                      <span className="flex-1 text-left">{theme.name}</span>
+                      {activeTheme.id === theme.id && (
+                        <Check className="w-3.5 h-3.5 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Right section: Collaboration + Actions */}

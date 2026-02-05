@@ -7,18 +7,51 @@ export interface RendererProps {
     isEditing?: boolean;
 }
 
+// Unified design tokens
+const designTokens = {
+    colors: {
+        background: '#0f0f16',
+        surface: '#161621',
+        surfaceHover: '#1c1c2a',
+        border: 'rgba(255, 255, 255, 0.08)',
+        borderSubtle: 'rgba(255, 255, 255, 0.05)',
+        text: {
+            primary: '#f5f5f7',
+            secondary: '#a1a1aa',
+            muted: '#71717a',
+        },
+        accent: '#3b82f6',
+        accentHover: '#2563eb',
+    },
+    radius: {
+        sm: '4px',
+        md: '6px',
+        lg: '10px',
+        xl: '14px',
+    },
+    spacing: {
+        xs: '6px',
+        sm: '10px',
+        md: '16px',
+        lg: '24px',
+    },
+};
+
 // Button Renderer
-export function ButtonRenderer({ element, isEditing }: RendererProps) {
+export function ButtonRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
 
     return (
         <button
-            className="w-full h-full flex items-center justify-center font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-[0.98]"
+            className="w-full h-full flex items-center justify-center transition-all"
             style={{
-                backgroundColor: styles.backgroundColor || '#3b82f6',
-                color: styles.color || '#ffffff',
-                fontSize: styles.fontSize || '14px',
-                borderRadius: styles.borderRadius || '8px',
+                backgroundColor: styles.backgroundColor || designTokens.colors.accent,
+                color: styles.color || designTokens.colors.text.primary,
+                fontSize: styles.fontSize || '13px',
+                fontWeight: 500,
+                borderRadius: styles.borderRadius || designTokens.radius.md,
+                border: 'none',
+                letterSpacing: '-0.01em',
                 ...styles,
             }}
         >
@@ -28,18 +61,20 @@ export function ButtonRenderer({ element, isEditing }: RendererProps) {
 }
 
 // Text Renderer
-export function TextRenderer({ element, isEditing }: RendererProps) {
+export function TextRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
 
     return (
         <div
             className="w-full h-full flex items-center"
             style={{
-                color: styles.color || '#f8fafc',
-                fontSize: styles.fontSize || '16px',
+                color: styles.color || designTokens.colors.text.primary,
+                fontSize: styles.fontSize || '15px',
                 fontWeight: styles.fontWeight || '400',
+                lineHeight: '1.5',
                 textAlign: (styles.textAlign as React.CSSProperties['textAlign']) || 'left',
-                padding: styles.padding || '8px',
+                padding: styles.padding || designTokens.spacing.sm,
+                letterSpacing: '-0.01em',
                 ...styles,
             }}
         >
@@ -49,29 +84,63 @@ export function TextRenderer({ element, isEditing }: RendererProps) {
 }
 
 // Navbar Renderer
-export function NavbarRenderer({ element, isEditing }: RendererProps) {
+export function NavbarRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
 
     return (
         <nav
-            className="w-full h-full flex items-center justify-between px-6"
+            className="w-full h-full flex items-center justify-between"
             style={{
-                backgroundColor: styles.backgroundColor || '#0f172a',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: styles.backgroundColor || designTokens.colors.surface,
+                borderBottom: `1px solid ${designTokens.colors.border}`,
+                padding: `0 ${designTokens.spacing.lg}`,
                 ...styles,
             }}
         >
-            <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
-                <span className="font-semibold text-white">Brand</span>
+            <div className="flex items-center gap-3">
+                <div 
+                    className="w-7 h-7 rounded-md flex items-center justify-center"
+                    style={{ backgroundColor: designTokens.colors.accent }}
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <span style={{ 
+                    fontWeight: 600, 
+                    color: designTokens.colors.text.primary,
+                    fontSize: '14px',
+                    letterSpacing: '-0.02em'
+                }}>
+                    Brand
+                </span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-300">
-                <span className="hover:text-white cursor-pointer transition-colors">Home</span>
-                <span className="hover:text-white cursor-pointer transition-colors">About</span>
-                <span className="hover:text-white cursor-pointer transition-colors">Services</span>
-                <span className="hover:text-white cursor-pointer transition-colors">Contact</span>
+            <div className="flex items-center gap-6">
+                {['Home', 'Features', 'Pricing', 'About'].map((item) => (
+                    <span 
+                        key={item}
+                        style={{ 
+                            fontSize: '13px', 
+                            color: designTokens.colors.text.secondary,
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {item}
+                    </span>
+                ))}
             </div>
-            <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors">
+            <button 
+                style={{
+                    padding: '8px 16px',
+                    backgroundColor: designTokens.colors.accent,
+                    color: 'white',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    borderRadius: designTokens.radius.md,
+                    border: 'none',
+                }}
+            >
                 Get Started
             </button>
         </nav>
@@ -79,32 +148,66 @@ export function NavbarRenderer({ element, isEditing }: RendererProps) {
 }
 
 // Hero Section Renderer
-export function HeroRenderer({ element, isEditing }: RendererProps) {
+export function HeroRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
 
     return (
         <section
-            className="w-full h-full flex flex-col items-center justify-center text-center px-8 relative overflow-hidden"
+            className="w-full h-full flex flex-col items-center justify-center text-center relative overflow-hidden"
             style={{
-                background: styles.background || 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
+                background: styles.background || `linear-gradient(180deg, ${designTokens.colors.surface} 0%, ${designTokens.colors.background} 100%)`,
+                padding: designTokens.spacing.lg,
                 ...styles,
             }}
         >
-            {/* Background glow effect */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(99,102,241,0.15)_0%,_transparent_70%)]" />
-
-            <div className="relative z-10">
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            <div className="relative z-10" style={{ maxWidth: '600px' }}>
+                <h1 
+                    style={{
+                        fontSize: '36px',
+                        fontWeight: 700,
+                        color: designTokens.colors.text.primary,
+                        marginBottom: '16px',
+                        lineHeight: 1.15,
+                        letterSpacing: '-0.03em',
+                    }}
+                >
                     {element.props?.heading as string || 'Build Something Amazing'}
                 </h1>
-                <p className="text-lg text-gray-300 mb-8 max-w-xl">
-                    {element.props?.subheading as string || 'Create stunning websites with our intuitive drag-and-drop builder. No coding required.'}
+                <p 
+                    style={{
+                        fontSize: '16px',
+                        color: designTokens.colors.text.secondary,
+                        marginBottom: '28px',
+                        lineHeight: 1.6,
+                    }}
+                >
+                    {element.props?.subheading as string || 'Create stunning websites with our intuitive drag-and-drop builder.'}
                 </p>
-                <div className="flex items-center justify-center gap-4">
-                    <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 transition-all hover:scale-105">
+                <div className="flex items-center justify-center gap-3">
+                    <button 
+                        style={{
+                            padding: '12px 24px',
+                            backgroundColor: designTokens.colors.accent,
+                            color: 'white',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            borderRadius: designTokens.radius.md,
+                            border: 'none',
+                        }}
+                    >
                         Get Started
                     </button>
-                    <button className="px-6 py-3 bg-white/10 text-white font-medium rounded-lg border border-white/20 hover:bg-white/20 transition-all">
+                    <button 
+                        style={{
+                            padding: '12px 24px',
+                            backgroundColor: 'transparent',
+                            color: designTokens.colors.text.secondary,
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            borderRadius: designTokens.radius.md,
+                            border: `1px solid ${designTokens.colors.border}`,
+                        }}
+                    >
                         Learn More
                     </button>
                 </div>
@@ -114,25 +217,33 @@ export function HeroRenderer({ element, isEditing }: RendererProps) {
 }
 
 // Section Renderer
-export function SectionRenderer({ element, isEditing }: RendererProps) {
+export function SectionRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
 
     return (
         <section
             className="w-full h-full flex items-center justify-center"
             style={{
-                backgroundColor: styles.backgroundColor || '#0f172a',
-                padding: styles.padding || '24px',
-                borderRadius: styles.borderRadius || '12px',
-                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: styles.backgroundColor || designTokens.colors.surface,
+                padding: styles.padding || designTokens.spacing.lg,
+                borderRadius: styles.borderRadius || designTokens.radius.lg,
+                border: `1px solid ${designTokens.colors.border}`,
                 ...styles,
             }}
         >
             <div className="text-center">
-                <h2 className="text-2xl font-semibold text-white mb-2">
+                <h2 
+                    style={{
+                        fontSize: '22px',
+                        fontWeight: 600,
+                        color: designTokens.colors.text.primary,
+                        marginBottom: '8px',
+                        letterSpacing: '-0.02em',
+                    }}
+                >
                     {element.props?.title as string || 'Section Title'}
                 </h2>
-                <p className="text-gray-400">
+                <p style={{ color: designTokens.colors.text.muted, fontSize: '14px' }}>
                     {element.props?.description as string || 'Add your content here'}
                 </p>
             </div>
@@ -141,7 +252,7 @@ export function SectionRenderer({ element, isEditing }: RendererProps) {
 }
 
 // Image Renderer
-export function ImageRenderer({ element, isEditing }: RendererProps) {
+export function ImageRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
     const src = element.props?.src as string;
 
@@ -149,8 +260,9 @@ export function ImageRenderer({ element, isEditing }: RendererProps) {
         <div
             className="w-full h-full flex items-center justify-center overflow-hidden"
             style={{
-                borderRadius: styles.borderRadius || '8px',
-                backgroundColor: '#1e293b',
+                borderRadius: styles.borderRadius || designTokens.radius.lg,
+                backgroundColor: designTokens.colors.surface,
+                border: `1px solid ${designTokens.colors.borderSubtle}`,
                 ...styles,
             }}
         >
@@ -161,11 +273,19 @@ export function ImageRenderer({ element, isEditing }: RendererProps) {
                     className="w-full h-full object-cover"
                 />
             ) : (
-                <div className="flex flex-col items-center gap-2 text-gray-500">
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div className="flex flex-col items-center gap-2">
+                    <svg 
+                        className="w-10 h-10" 
+                        fill="none" 
+                        stroke={designTokens.colors.text.muted} 
+                        strokeWidth="1.5"
+                        viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
-                    <span className="text-sm">Image Placeholder</span>
+                    <span style={{ fontSize: '12px', color: designTokens.colors.text.muted }}>
+                        Image
+                    </span>
                 </div>
             )}
         </div>
@@ -173,36 +293,72 @@ export function ImageRenderer({ element, isEditing }: RendererProps) {
 }
 
 // Card Renderer
-export function CardRenderer({ element, isEditing }: RendererProps) {
+export function CardRenderer({ element }: RendererProps) {
     const styles = element.props?.styles as Record<string, string> || {};
 
     return (
         <div
             className="w-full h-full flex flex-col overflow-hidden"
             style={{
-                backgroundColor: styles.backgroundColor || '#1e293b',
-                borderRadius: styles.borderRadius || '12px',
-                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: styles.backgroundColor || designTokens.colors.surface,
+                borderRadius: styles.borderRadius || designTokens.radius.lg,
+                border: `1px solid ${designTokens.colors.border}`,
                 ...styles,
             }}
         >
             {/* Card image area */}
-            <div className="h-1/2 bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center">
-                <svg className="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div 
+                className="flex-shrink-0 flex items-center justify-center"
+                style={{ 
+                    height: '45%', 
+                    backgroundColor: designTokens.colors.background,
+                    borderBottom: `1px solid ${designTokens.colors.borderSubtle}`,
+                }}
+            >
+                <svg 
+                    className="w-8 h-8" 
+                    fill="none" 
+                    stroke={designTokens.colors.text.muted} 
+                    strokeWidth="1.5"
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                 </svg>
             </div>
             {/* Card content */}
-            <div className="flex-1 p-4 flex flex-col">
-                <h3 className="text-lg font-semibold text-white mb-1">
+            <div className="flex-1 flex flex-col" style={{ padding: designTokens.spacing.md }}>
+                <h3 
+                    style={{
+                        fontSize: '15px',
+                        fontWeight: 600,
+                        color: designTokens.colors.text.primary,
+                        marginBottom: '6px',
+                        letterSpacing: '-0.01em',
+                    }}
+                >
                     {element.props?.title as string || 'Card Title'}
                 </h3>
-                <p className="text-sm text-gray-400 flex-1">
+                <p 
+                    style={{
+                        fontSize: '13px',
+                        color: designTokens.colors.text.muted,
+                        lineHeight: 1.5,
+                        flex: 1,
+                    }}
+                >
                     {element.props?.description as string || 'Card description goes here.'}
                 </p>
-                <button className="mt-3 text-sm text-blue-400 hover:text-blue-300 font-medium self-start">
+                <span 
+                    style={{
+                        fontSize: '13px',
+                        color: designTokens.colors.accent,
+                        fontWeight: 500,
+                        marginTop: '12px',
+                        cursor: 'pointer',
+                    }}
+                >
                     Learn more →
-                </button>
+                </span>
             </div>
         </div>
     );
@@ -224,8 +380,16 @@ export function ElementRenderer({ element, isEditing = false }: RendererProps) {
 
     if (!Renderer) {
         return (
-            <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-lg border border-dashed border-gray-600">
-                <span className="text-gray-400 text-sm">Unknown: {element.type}</span>
+            <div 
+                className="w-full h-full flex items-center justify-center rounded-lg"
+                style={{
+                    backgroundColor: designTokens.colors.surface,
+                    border: `1px dashed ${designTokens.colors.border}`,
+                }}
+            >
+                <span style={{ color: designTokens.colors.text.muted, fontSize: '13px' }}>
+                    Unknown: {element.type}
+                </span>
             </div>
         );
     }
