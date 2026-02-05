@@ -13,7 +13,13 @@ import {
   GripVertical,
   PanelLeftClose,
   PanelLeft,
-  ArrowLeft
+  ArrowLeft,
+  Quote,
+  HelpCircle,
+  DollarSign,
+  Zap,
+  Bot,
+  LayoutGrid
 } from 'lucide-react';
 import { useBuilder, CanvasElement } from '@/contexts/BuilderContext';
 import { Input } from '@/components/ui/input';
@@ -22,64 +28,400 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
 // Component variants data - different styles for each component type
-const componentVariants: Record<string, { id: string; label: string; preview: string; props?: Record<string, unknown> }[]> = {
+const componentVariants: Record<string, { id: string; label: string; props?: Record<string, unknown> }[]> = {
   navbar: [
-    { id: 'navbar-minimal', label: 'Minimal', preview: 'Clean minimal navbar with logo and links' },
-    { id: 'navbar-centered', label: 'Centered', preview: 'Logo centered with links on sides' },
-    { id: 'navbar-dark', label: 'Dark', preview: 'Dark background with light text' },
-    { id: 'navbar-transparent', label: 'Transparent', preview: 'Transparent with blur effect' },
+    { id: 'navbar-minimal', label: 'Minimal', props: { style: 'minimal' } },
+    { id: 'navbar-centered', label: 'Centered', props: { style: 'centered' } },
+    { id: 'navbar-dark', label: 'Dark', props: { style: 'dark' } },
+    { id: 'navbar-transparent', label: 'Transparent', props: { style: 'transparent' } },
   ],
   hero: [
-    { id: 'hero-centered', label: 'Centered', preview: 'Text centered with CTA buttons' },
-    { id: 'hero-split', label: 'Split', preview: 'Text left, image right' },
-    { id: 'hero-gradient', label: 'Gradient', preview: 'Gradient background with overlay' },
-    { id: 'hero-minimal', label: 'Minimal', preview: 'Simple text only hero' },
+    { id: 'hero-centered', label: 'Centered', props: { style: 'centered' } },
+    { id: 'hero-split', label: 'Split', props: { style: 'split' } },
+    { id: 'hero-gradient', label: 'Gradient', props: { style: 'gradient' } },
+    { id: 'hero-minimal', label: 'Minimal', props: { style: 'minimal' } },
   ],
   section: [
-    { id: 'section-basic', label: 'Basic', preview: 'Simple content section' },
-    { id: 'section-features', label: 'Features', preview: 'Grid of feature cards' },
-    { id: 'section-cta', label: 'CTA', preview: 'Call to action section' },
+    { id: 'section-basic', label: 'Basic', props: { style: 'basic' } },
+    { id: 'section-features', label: 'Features', props: { style: 'features' } },
+    { id: 'section-cta', label: 'CTA', props: { style: 'cta' } },
   ],
   button: [
-    { id: 'button-primary', label: 'Primary', preview: 'Solid primary color' },
-    { id: 'button-secondary', label: 'Secondary', preview: 'Outlined style' },
-    { id: 'button-ghost', label: 'Ghost', preview: 'Transparent background' },
-    { id: 'button-gradient', label: 'Gradient', preview: 'Gradient background' },
+    { id: 'button-primary', label: 'Primary', props: { style: 'primary' } },
+    { id: 'button-secondary', label: 'Secondary', props: { style: 'secondary' } },
+    { id: 'button-ghost', label: 'Ghost', props: { style: 'ghost' } },
+    { id: 'button-gradient', label: 'Gradient', props: { style: 'gradient' } },
   ],
   text: [
-    { id: 'text-heading', label: 'Heading', preview: 'Large heading text' },
-    { id: 'text-paragraph', label: 'Paragraph', preview: 'Body text paragraph' },
-    { id: 'text-caption', label: 'Caption', preview: 'Small caption text' },
+    { id: 'text-heading', label: 'Heading', props: { style: 'heading' } },
+    { id: 'text-paragraph', label: 'Paragraph', props: { style: 'paragraph' } },
+    { id: 'text-caption', label: 'Caption', props: { style: 'caption' } },
   ],
   image: [
-    { id: 'image-basic', label: 'Basic', preview: 'Simple image container' },
-    { id: 'image-rounded', label: 'Rounded', preview: 'Rounded corners' },
-    { id: 'image-avatar', label: 'Avatar', preview: 'Circular avatar style' },
+    { id: 'image-basic', label: 'Basic', props: { style: 'basic' } },
+    { id: 'image-rounded', label: 'Rounded', props: { style: 'rounded' } },
+    { id: 'image-avatar', label: 'Avatar', props: { style: 'avatar' } },
   ],
   card: [
-    { id: 'card-basic', label: 'Basic', preview: 'Image with text content' },
-    { id: 'card-horizontal', label: 'Horizontal', preview: 'Side by side layout' },
-    { id: 'card-overlay', label: 'Overlay', preview: 'Text over image' },
-    { id: 'card-minimal', label: 'Minimal', preview: 'Simple text only' },
+    { id: 'card-basic', label: 'Basic', props: { style: 'basic' } },
+    { id: 'card-horizontal', label: 'Horizontal', props: { style: 'horizontal' } },
+    { id: 'card-overlay', label: 'Overlay', props: { style: 'overlay' } },
+    { id: 'card-minimal', label: 'Minimal', props: { style: 'minimal' } },
+  ],
+  marquee: [
+    { id: 'marquee-logos', label: 'Logo Cloud', props: { style: 'logos' } },
+    { id: 'marquee-text', label: 'Text Only', props: { style: 'text' } },
+  ],
+  features: [
+    { id: 'features-grid', label: 'Grid', props: { style: 'grid' } },
+    { id: 'features-bento', label: 'Bento', props: { style: 'bento' } },
+    { id: 'features-list', label: 'List', props: { style: 'list' } },
+  ],
+  testimonials: [
+    { id: 'testimonials-cards', label: 'Cards', props: { style: 'cards' } },
+    { id: 'testimonials-single', label: 'Single', props: { style: 'single' } },
+  ],
+  pricing: [
+    { id: 'pricing-cards', label: 'Cards', props: { style: 'cards' } },
+    { id: 'pricing-comparison', label: 'Comparison', props: { style: 'comparison' } },
+  ],
+  faq: [
+    { id: 'faq-accordion', label: 'Accordion', props: { style: 'accordion' } },
+    { id: 'faq-grid', label: 'Grid', props: { style: 'grid' } },
+  ],
+  footer: [
+    { id: 'footer-simple', label: 'Simple', props: { style: 'simple' } },
+    { id: 'footer-columns', label: 'Columns', props: { style: 'columns' } },
   ],
 };
+
+// Mini preview components for variant cards
+function NavbarPreview({ variantId }: { variantId: string }) {
+  const styles: Record<string, React.CSSProperties> = {
+    'navbar-minimal': { background: '#1a1a2e', borderBottom: '1px solid rgba(255,255,255,0.1)' },
+    'navbar-centered': { background: '#1a1a2e', borderBottom: '1px solid rgba(255,255,255,0.1)' },
+    'navbar-dark': { background: '#0a0a0f', borderBottom: '1px solid rgba(255,255,255,0.05)' },
+    'navbar-transparent': { background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' },
+  };
+  const isCentered = variantId === 'navbar-centered';
+  
+  return (
+    <div className="w-full h-full flex items-center px-2 rounded" style={styles[variantId]}>
+      <div className={`flex items-center gap-1 ${isCentered ? 'flex-1' : ''}`}>
+        <div className="w-3 h-3 rounded bg-primary/80" />
+        {!isCentered && <div className="w-8 h-1.5 rounded bg-white/60" />}
+      </div>
+      {isCentered && (
+        <div className="flex items-center gap-1">
+          <div className="w-6 h-1.5 rounded bg-white/40" />
+          <div className="w-3 h-3 rounded bg-primary/80" />
+          <div className="w-6 h-1.5 rounded bg-white/40" />
+        </div>
+      )}
+      <div className={`flex items-center gap-1 ${isCentered ? 'flex-1 justify-end' : 'ml-auto'}`}>
+        <div className="w-4 h-1 rounded bg-white/40" />
+        <div className="w-4 h-1 rounded bg-white/40" />
+        <div className="w-4 h-1 rounded bg-white/40" />
+      </div>
+    </div>
+  );
+}
+
+function HeroPreview({ variantId }: { variantId: string }) {
+  const isGradient = variantId === 'hero-gradient';
+  const isSplit = variantId === 'hero-split';
+  const isMinimal = variantId === 'hero-minimal';
+  
+  return (
+    <div 
+      className={`w-full h-full rounded flex items-center justify-center p-2 ${isSplit ? 'flex-row' : 'flex-col'}`}
+      style={isGradient ? { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' } : { background: '#1a1a2e' }}
+    >
+      <div className={`flex flex-col items-center gap-1 ${isSplit ? 'flex-1 items-start' : ''}`}>
+        <div className="w-12 h-1.5 rounded bg-white/80" />
+        <div className="w-8 h-1 rounded bg-white/50" />
+        {!isMinimal && (
+          <div className="flex gap-1 mt-1">
+            <div className="w-6 h-2 rounded bg-primary" />
+            <div className="w-6 h-2 rounded border border-white/40" />
+          </div>
+        )}
+      </div>
+      {isSplit && (
+        <div className="flex-1 flex justify-end">
+          <div className="w-8 h-8 rounded bg-white/20" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionPreview({ variantId }: { variantId: string }) {
+  const isFeatures = variantId === 'section-features';
+  const isCta = variantId === 'section-cta';
+  
+  return (
+    <div className="w-full h-full rounded bg-[#1a1a2e] p-2 flex flex-col items-center justify-center gap-1">
+      <div className="w-8 h-1 rounded bg-white/60" />
+      {isFeatures ? (
+        <div className="flex gap-1 mt-1">
+          <div className="w-4 h-4 rounded bg-white/10 border border-white/20" />
+          <div className="w-4 h-4 rounded bg-white/10 border border-white/20" />
+          <div className="w-4 h-4 rounded bg-white/10 border border-white/20" />
+        </div>
+      ) : isCta ? (
+        <div className="flex items-center gap-1 mt-1">
+          <div className="w-10 h-1 rounded bg-white/40" />
+          <div className="w-5 h-2 rounded bg-primary" />
+        </div>
+      ) : (
+        <div className="w-12 h-1 rounded bg-white/30 mt-1" />
+      )}
+    </div>
+  );
+}
+
+function ButtonPreview({ variantId }: { variantId: string }) {
+  const styles: Record<string, React.CSSProperties> = {
+    'button-primary': { background: '#3b82f6', color: 'white' },
+    'button-secondary': { background: 'transparent', border: '1px solid #3b82f6', color: '#3b82f6' },
+    'button-ghost': { background: 'transparent', color: 'white' },
+    'button-gradient': { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' },
+  };
+  
+  return (
+    <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center">
+      <div 
+        className="px-3 py-1 rounded text-[8px] font-medium"
+        style={styles[variantId]}
+      >
+        Button
+      </div>
+    </div>
+  );
+}
+
+function TextPreview({ variantId }: { variantId: string }) {
+  return (
+    <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center p-2">
+      {variantId === 'text-heading' && <div className="w-12 h-2 rounded bg-white/80" />}
+      {variantId === 'text-paragraph' && (
+        <div className="flex flex-col gap-0.5">
+          <div className="w-14 h-1 rounded bg-white/60" />
+          <div className="w-10 h-1 rounded bg-white/40" />
+        </div>
+      )}
+      {variantId === 'text-caption' && <div className="w-10 h-0.5 rounded bg-white/50" />}
+    </div>
+  );
+}
+
+function ImagePreview({ variantId }: { variantId: string }) {
+  const isAvatar = variantId === 'image-avatar';
+  const isRounded = variantId === 'image-rounded';
+  
+  return (
+    <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center">
+      <div 
+        className={`bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center ${
+          isAvatar ? 'w-6 h-6 rounded-full' : isRounded ? 'w-10 h-6 rounded-lg' : 'w-10 h-6 rounded'
+        }`}
+      >
+        <Image className="w-2 h-2 text-white/50" />
+      </div>
+    </div>
+  );
+}
+
+function CardPreview({ variantId }: { variantId: string }) {
+  const isHorizontal = variantId === 'card-horizontal';
+  const isOverlay = variantId === 'card-overlay';
+  const isMinimal = variantId === 'card-minimal';
+  
+  return (
+    <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center p-1">
+      <div 
+        className={`bg-white/5 border border-white/10 rounded overflow-hidden ${
+          isHorizontal ? 'flex flex-row w-full h-6' : 'flex flex-col w-10'
+        }`}
+      >
+        {!isMinimal && !isOverlay && (
+          <div className={`bg-white/10 ${isHorizontal ? 'w-6 h-full' : 'w-full h-4'}`} />
+        )}
+        {isOverlay && (
+          <div className="w-full h-6 bg-gradient-to-t from-black/80 to-transparent relative">
+            <div className="absolute bottom-1 left-1 w-4 h-0.5 bg-white/80 rounded" />
+          </div>
+        )}
+        <div className={`p-0.5 ${isHorizontal ? 'flex-1' : ''}`}>
+          <div className="w-4 h-0.5 bg-white/60 rounded mb-0.5" />
+          <div className="w-6 h-0.5 bg-white/30 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MarqueePreview() {
+  return (
+    <div className="w-full h-full rounded bg-[#09090b] flex items-center justify-center gap-2 px-2">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-white/20" />
+          <div className="w-4 h-1 rounded bg-white/30" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FeaturesPreview({ variantId }: { variantId: string }) {
+  const isBento = variantId === 'features-bento';
+  const isList = variantId === 'features-list';
+  
+  return (
+    <div className="w-full h-full rounded bg-[#09090b] p-2 flex flex-col items-center gap-1">
+      <div className="w-8 h-1 rounded bg-white/60 mb-1" />
+      <div className={`flex gap-1 ${isList ? 'flex-col' : 'flex-row'}`}>
+        {[1, 2, 3].map((i) => (
+          <div 
+            key={i} 
+            className={`rounded bg-white/5 border border-white/10 p-1 ${isBento && i === 1 ? 'col-span-2 w-8' : 'w-4'} ${isList ? 'w-full h-2' : 'h-4'}`}
+          >
+            <div className="w-2 h-1 rounded bg-primary/60 mb-0.5" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TestimonialsPreview({ variantId }: { variantId: string }) {
+  const isSingle = variantId === 'testimonials-single';
+  
+  return (
+    <div className="w-full h-full rounded bg-[#09090b] p-2 flex items-center justify-center gap-1">
+      {(isSingle ? [1] : [1, 2, 3]).map((i) => (
+        <div key={i} className="rounded bg-white/5 border border-white/10 p-1" style={{ width: isSingle ? '70%' : '25%' }}>
+          <div className="flex items-center gap-0.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-primary/60" />
+            <div className="w-3 h-0.5 rounded bg-white/40" />
+          </div>
+          <div className="w-full h-0.5 rounded bg-white/20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PricingPreview() {
+  return (
+    <div className="w-full h-full rounded bg-[#09090b] p-2 flex items-center justify-center gap-1">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className={`rounded p-1 w-5 h-7 ${i === 2 ? 'bg-primary/20 border border-primary/40' : 'bg-white/5 border border-white/10'}`}>
+          <div className="w-3 h-0.5 rounded bg-white/40 mb-0.5" />
+          <div className="w-4 h-1 rounded bg-white/60 mb-1" />
+          <div className="w-3 h-0.5 rounded bg-white/20 mb-0.5" />
+          <div className="w-3 h-0.5 rounded bg-white/20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FaqPreview() {
+  return (
+    <div className="w-full h-full rounded bg-[#09090b] p-2 flex flex-col items-center gap-0.5">
+      <div className="w-8 h-1 rounded bg-white/60 mb-1" />
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="w-full rounded bg-white/5 border border-white/10 p-1 flex justify-between items-center">
+          <div className="w-6 h-0.5 rounded bg-white/40" />
+          <div className="w-1 h-1 rounded bg-white/30" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FooterPreview({ variantId }: { variantId: string }) {
+  const isSimple = variantId === 'footer-simple';
+  
+  return (
+    <div className="w-full h-full rounded bg-[#18181b] border-t border-white/10 p-2 flex items-center">
+      {isSimple ? (
+        <div className="w-full flex justify-between items-center">
+          <div className="w-4 h-2 rounded bg-primary/60" />
+          <div className="w-10 h-0.5 rounded bg-white/30" />
+          <div className="flex gap-1">
+            <div className="w-2 h-2 rounded bg-white/20" />
+            <div className="w-2 h-2 rounded bg-white/20" />
+          </div>
+        </div>
+      ) : (
+        <div className="w-full flex gap-2">
+          <div className="flex-1">
+            <div className="w-4 h-2 rounded bg-primary/60 mb-1" />
+            <div className="w-6 h-0.5 rounded bg-white/20" />
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex-1">
+              <div className="w-4 h-0.5 rounded bg-white/40 mb-0.5" />
+              <div className="w-3 h-0.5 rounded bg-white/20" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Variant preview renderer
+function VariantPreview({ componentType, variantId }: { componentType: string; variantId: string }) {
+  switch (componentType) {
+    case 'navbar': return <NavbarPreview variantId={variantId} />;
+    case 'hero': return <HeroPreview variantId={variantId} />;
+    case 'section': return <SectionPreview variantId={variantId} />;
+    case 'button': return <ButtonPreview variantId={variantId} />;
+    case 'text': return <TextPreview variantId={variantId} />;
+    case 'image': return <ImagePreview variantId={variantId} />;
+    case 'card': return <CardPreview variantId={variantId} />;
+    case 'marquee': return <MarqueePreview />;
+    case 'features': return <FeaturesPreview variantId={variantId} />;
+    case 'testimonials': return <TestimonialsPreview variantId={variantId} />;
+    case 'pricing': return <PricingPreview />;
+    case 'faq': return <FaqPreview />;
+    case 'footer': return <FooterPreview variantId={variantId} />;
+    default: return <div className="w-full h-full bg-white/10 rounded" />;
+  }
+}
 
 const componentLibrary = [
   {
     category: 'Layout',
     items: [
-      { type: 'section', icon: Layout, label: 'Section', width: 400, height: 200 },
-      { type: 'navbar', icon: Navigation2, label: 'Navbar', width: 800, height: 60 },
-      { type: 'hero', icon: Sparkles, label: 'Hero', width: 400, height: 300 },
+      { type: 'navbar', icon: Navigation2, label: 'Navbar', width: 800, height: 64 },
+      { type: 'hero', icon: Sparkles, label: 'Hero', width: 800, height: 400 },
+      { type: 'section', icon: Layout, label: 'Section', width: 800, height: 300 },
+      { type: 'footer', icon: LayoutGrid, label: 'Footer', width: 800, height: 120 },
+    ]
+  },
+  {
+    category: 'Sections',
+    items: [
+      { type: 'features', icon: Zap, label: 'Features', width: 800, height: 400 },
+      { type: 'testimonials', icon: Quote, label: 'Testimonials', width: 800, height: 320 },
+      { type: 'pricing', icon: DollarSign, label: 'Pricing', width: 800, height: 450 },
+      { type: 'faq', icon: HelpCircle, label: 'FAQ', width: 800, height: 350 },
+      { type: 'marquee', icon: Bot, label: 'Marquee', width: 800, height: 100 },
     ]
   },
   {
     category: 'Elements',
     items: [
-      { type: 'button', icon: Square, label: 'Button', width: 120, height: 40 },
-      { type: 'text', icon: Type, label: 'Text', width: 200, height: 40 },
-      { type: 'image', icon: Image, label: 'Image', width: 200, height: 150 },
-      { type: 'card', icon: CreditCard, label: 'Card', width: 300, height: 200 },
+      { type: 'button', icon: Square, label: 'Button', width: 160, height: 48 },
+      { type: 'text', icon: Type, label: 'Text', width: 300, height: 48 },
+      { type: 'image', icon: Image, label: 'Image', width: 300, height: 200 },
+      { type: 'card', icon: CreditCard, label: 'Card', width: 320, height: 280 },
     ]
   }
 ];
@@ -114,7 +456,7 @@ function ComponentCard({ type, icon: Icon, label, onClick }: ComponentCardProps)
 }
 
 interface VariantCardProps {
-  variant: { id: string; label: string; preview: string; props?: Record<string, unknown> };
+  variant: { id: string; label: string; props?: Record<string, unknown> };
   componentType: string;
   componentConfig: { width: number; height: number; label: string };
   onSelect: () => void;
@@ -148,15 +490,13 @@ function VariantCard({ variant, componentType, componentConfig, onSelect }: Vari
 
   return (
     <motion.div
-      className="p-3 rounded-lg bg-secondary/50 border border-white/[0.06] cursor-pointer hover:border-primary/30 hover:bg-secondary transition-all"
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
+      className="p-2 rounded-lg bg-secondary/50 border border-white/[0.06] cursor-pointer hover:border-primary/30 hover:bg-secondary transition-all"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       onClick={handleSelect}
     >
-      <div className="aspect-video rounded-md bg-background/50 mb-2 flex items-center justify-center overflow-hidden">
-        <div className="text-[10px] text-muted-foreground/60 text-center px-2">
-          {variant.preview}
-        </div>
+      <div className="aspect-video rounded-md overflow-hidden mb-2">
+        <VariantPreview componentType={componentType} variantId={variant.id} />
       </div>
       <span className="text-xs font-medium text-foreground">{variant.label}</span>
     </motion.div>
@@ -178,6 +518,12 @@ function LayerItem({ element, isSelected, onSelect }: LayerItemProps) {
     text: Type,
     image: Image,
     card: CreditCard,
+    marquee: Bot,
+    features: Zap,
+    testimonials: Quote,
+    pricing: DollarSign,
+    faq: HelpCircle,
+    footer: LayoutGrid,
   };
 
   const Icon = IconMap[element.type] || Square;

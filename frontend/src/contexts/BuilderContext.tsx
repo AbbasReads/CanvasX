@@ -4,7 +4,7 @@ import { useTamboContextHelpers } from '@tambo-ai/react';
 // Types for canvas elements
 export interface CanvasElement {
   id: string;
-  type: 'section' | 'navbar' | 'hero' | 'button' | 'text' | 'image' | 'card';
+  type: 'section' | 'navbar' | 'hero' | 'button' | 'text' | 'image' | 'card' | 'marquee' | 'faq' | 'footer' | 'testimonials' | 'pricing' | 'features';
   x: number;
   y: number;
   width: number;
