@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   PanelRightClose,
   PanelRight,
   Palette,
@@ -10,9 +10,11 @@ import {
   Send,
   Sparkles,
   ChevronDown,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { useBuilder } from '@/contexts/BuilderContext';
+import { useTamboThread } from '@tambo-ai/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -22,61 +24,108 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AILogEntry {
   id: string;
-  type: 'reasoning' | 'action' | 'success';
+  type: 'reasoning' | 'action' | 'success' | 'error';
   content: string;
   timestamp: Date;
 }
 
 export function RightSidebar() {
-  const { 
-    elements, 
-    selectedId, 
+  const {
+    elements,
+    selectedId,
     updateElement,
-    rightSidebarOpen, 
-    setRightSidebarOpen 
+    rightSidebarOpen,
+    setRightSidebarOpen
   } = useBuilder();
 
   const [aiInput, setAiInput] = useState('');
-  const [aiLogs, setAiLogs] = useState<AILogEntry[]>([
-    { id: '1', type: 'reasoning', content: 'Analyzing current canvas structure...', timestamp: new Date() },
-    { id: '2', type: 'action', content: 'Ready for commands. Try "Add a hero section with gradient background"', timestamp: new Date() },
-  ]);
+  // Store chat history per element ID
+  const [chatHistoryByElement, setChatHistoryByElement] = useState<Record<string, AILogEntry[]>>({});
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const selectedElement = elements.find(el => el.id === selectedId);
 
-  const handleAiSubmit = (e: React.FormEvent) => {
+  // Get current element's chat history, or create default for new elements
+  const currentChatHistory = selectedId
+    ? chatHistoryByElement[selectedId] || []
+    : [];
+
+  // Tambo thread for AI-powered modifications
+  const { sendThreadMessage, thread, generationStage } = useTamboThread();
+
+  // Helper to add log entry for current element
+  const addLogEntry = useCallback((entry: AILogEntry) => {
+    if (!selectedId) return;
+    setChatHistoryByElement(prev => ({
+      ...prev,
+      [selectedId]: [...(prev[selectedId] || []), entry]
+    }));
+  }, [selectedId]);
+
+  // Watch Tambo generationStage to update logs
+  useEffect(() => {
+    if (generationStage === 'idle' && isProcessing) {
+      // Check the latest message in thread for tool results
+      const lastMessage = thread?.messages?.[thread.messages.length - 1];
+      if (lastMessage?.content) {
+        addLogEntry({
+          id: Date.now().toString(),
+          type: 'success',
+          content: '✓ AI modification complete',
+          timestamp: new Date()
+        });
+      }
+      setIsProcessing(false);
+    }
+  }, [generationStage, isProcessing, thread, addLogEntry]);
+
+  const handleAiSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aiInput.trim()) return;
+    if (!aiInput.trim() || isProcessing) return;
 
-    // Add user command
-    const newLogs: AILogEntry[] = [
-      ...aiLogs,
-      { id: Date.now().toString(), type: 'action', content: `> ${aiInput}`, timestamp: new Date() },
-      { id: (Date.now() + 1).toString(), type: 'reasoning', content: 'Processing request...', timestamp: new Date() },
-    ];
+    if (!selectedElement || !selectedId) {
+      return;
+    }
 
-    setAiLogs(newLogs);
+    const userPrompt = aiInput;
     setAiInput('');
+    setIsProcessing(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      setAiLogs(prev => [
-        ...prev,
-        { id: (Date.now() + 2).toString(), type: 'success', content: '✓ Command executed successfully', timestamp: new Date() },
-      ]);
-    }, 1500);
-  };
+    // Add user command to this element's chat history
+    addLogEntry({ id: Date.now().toString(), type: 'action', content: `> ${userPrompt}`, timestamp: new Date() });
+    addLogEntry({ id: (Date.now() + 1).toString(), type: 'reasoning', content: '🤖 Asking Tambo AI...', timestamp: new Date() });
+
+    try {
+      // Send to Tambo AI with context about the selected element
+      const contextMessage = `The user has selected a ${selectedElement.type} element called "${selectedElement.label}". 
+User request: ${userPrompt}
+
+Use the modify_element tool to make the requested changes to this element.`;
+
+      await sendThreadMessage(contextMessage, {
+        streamResponse: true,
+      });
+    } catch (error) {
+      addLogEntry({
+        id: (Date.now() + 2).toString(),
+        type: 'error',
+        content: `✗ ${error instanceof Error ? error.message : 'AI error'}`,
+        timestamp: new Date()
+      });
+      setIsProcessing(false);
+    }
+  }, [aiInput, isProcessing, selectedElement, selectedId, addLogEntry, sendThreadMessage]);
 
   if (!rightSidebarOpen) {
     return (
-      <motion.div 
+      <motion.div
         className="w-10 glass-panel border-l border-white/[0.06] flex flex-col items-center py-2"
         initial={{ width: 0, opacity: 0 }}
         animate={{ width: 40, opacity: 1 }}
       >
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-8 w-8"
           onClick={() => setRightSidebarOpen(true)}
         >
@@ -87,7 +136,7 @@ export function RightSidebar() {
   }
 
   return (
-    <motion.aside 
+    <motion.aside
       className="w-72 glass-panel border-l border-white/[0.06] flex flex-col overflow-hidden"
       initial={{ width: 0, opacity: 0 }}
       animate={{ width: 288, opacity: 1 }}
@@ -101,9 +150,9 @@ export function RightSidebar() {
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             {selectedElement ? 'Properties' : 'Inspector'}
           </span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-6 w-6"
             onClick={() => setRightSidebarOpen(false)}
           >
@@ -157,7 +206,7 @@ export function RightSidebar() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="property-label">X</Label>
-                        <Input 
+                        <Input
                           type="number"
                           value={Math.round(selectedElement.x)}
                           onChange={(e) => updateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })}
@@ -166,7 +215,7 @@ export function RightSidebar() {
                       </div>
                       <div>
                         <Label className="property-label">Y</Label>
-                        <Input 
+                        <Input
                           type="number"
                           value={Math.round(selectedElement.y)}
                           onChange={(e) => updateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })}
@@ -179,7 +228,7 @@ export function RightSidebar() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="property-label">Width</Label>
-                        <Input 
+                        <Input
                           type="number"
                           value={Math.round(selectedElement.width)}
                           onChange={(e) => updateElement(selectedElement.id, { width: parseInt(e.target.value) || 100 })}
@@ -188,7 +237,7 @@ export function RightSidebar() {
                       </div>
                       <div>
                         <Label className="property-label">Height</Label>
-                        <Input 
+                        <Input
                           type="number"
                           value={Math.round(selectedElement.height)}
                           onChange={(e) => updateElement(selectedElement.id, { height: parseInt(e.target.value) || 100 })}
@@ -201,9 +250,9 @@ export function RightSidebar() {
                   <TabsContent value="style" className="mt-3 space-y-3">
                     <div>
                       <Label className="property-label">Opacity</Label>
-                      <Slider 
-                        defaultValue={[100]} 
-                        max={100} 
+                      <Slider
+                        defaultValue={[100]}
+                        max={100}
                         step={1}
                         className="mt-2"
                       />
@@ -219,9 +268,9 @@ export function RightSidebar() {
                     </div>
                     <div>
                       <Label className="property-label">Border Radius</Label>
-                      <Slider 
-                        defaultValue={[8]} 
-                        max={32} 
+                      <Slider
+                        defaultValue={[8]}
+                        max={32}
                         step={1}
                         className="mt-2"
                       />
@@ -231,7 +280,7 @@ export function RightSidebar() {
                   <TabsContent value="text" className="mt-3 space-y-3">
                     <div>
                       <Label className="property-label">Content</Label>
-                      <Input 
+                      <Input
                         value={selectedElement.label}
                         onChange={(e) => updateElement(selectedElement.id, { label: e.target.value })}
                         className="property-input mt-1"
@@ -239,10 +288,10 @@ export function RightSidebar() {
                     </div>
                     <div>
                       <Label className="property-label">Font Size</Label>
-                      <Slider 
-                        defaultValue={[16]} 
+                      <Slider
+                        defaultValue={[16]}
                         min={10}
-                        max={72} 
+                        max={72}
                         step={1}
                         className="mt-2"
                       />
@@ -280,39 +329,70 @@ export function RightSidebar() {
 
       <Separator className="bg-white/[0.04]" />
 
-      {/* AI Terminal - Bottom Half */}
+      {/* AI Chat - Per Element */}
       <div className="h-64 flex flex-col">
-        {/* Terminal Header */}
+        {/* Chat Header - Shows which element we're editing */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.04]">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Agent</span>
+          {selectedElement ? (
+            <span className="text-xs font-semibold text-primary truncate">
+              {selectedElement.label || selectedElement.type} Chat
+            </span>
+          ) : (
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Select Element
+            </span>
+          )}
         </div>
 
-        {/* Terminal Logs */}
+        {/* Chat Messages for Current Element */}
         <div className="flex-1 overflow-y-auto p-3 ai-terminal space-y-2">
-          {aiLogs.map((log) => (
-            <motion.div
-              key={log.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={log.type}
-            >
-              {log.content}
-            </motion.div>
-          ))}
+          {selectedElement ? (
+            currentChatHistory.length > 0 ? (
+              currentChatHistory.map((log) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={log.type}
+                >
+                  {log.content}
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-xs text-muted-foreground text-center py-4">
+                Ask me to modify this {selectedElement.type}
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Sparkles className="w-6 h-6 text-muted-foreground/30 mb-2" />
+              <p className="text-xs text-muted-foreground">Select an element to chat</p>
+            </div>
+          )}
         </div>
 
-        {/* Terminal Input */}
+        {/* Chat Input */}
         <form onSubmit={handleAiSubmit} className="p-2 border-t border-white/[0.04]">
           <div className="flex gap-2">
-            <Input 
-              placeholder="Ask AI to modify the canvas..."
+            <Input
+              placeholder={selectedElement ? `Modify ${selectedElement.type}...` : "Select element first..."}
               value={aiInput}
               onChange={(e) => setAiInput(e.target.value)}
-              className="flex-1 h-8 text-xs bg-secondary/50 border-white/[0.04] focus:border-primary/30"
+              disabled={!selectedElement || isProcessing}
+              className="flex-1 h-8 text-xs bg-secondary/50 border-white/[0.04] focus:border-primary/30 disabled:opacity-50"
             />
-            <Button type="submit" size="icon" className="h-8 w-8 shrink-0">
-              <Send className="w-3.5 h-3.5" />
+            <Button
+              type="submit"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              disabled={!selectedElement || isProcessing}
+            >
+              {isProcessing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Send className="w-3.5 h-3.5" />
+              )}
             </Button>
           </div>
         </form>

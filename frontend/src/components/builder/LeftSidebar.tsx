@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Layout, 
-  Navigation2, 
-  Type, 
-  Image, 
-  Square, 
+import {
+  Search,
+  Layout,
+  Navigation2,
+  Type,
+  Image,
+  Square,
   CreditCard,
   Sparkles,
   ChevronDown,
@@ -21,7 +21,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
 const componentLibrary = [
-  { 
+  {
     category: 'Layout',
     items: [
       { type: 'section', icon: Layout, label: 'Section', width: 400, height: 200 },
@@ -49,6 +49,7 @@ interface DraggableComponentProps {
 }
 
 function DraggableComponent({ type, icon: Icon, label, width, height }: DraggableComponentProps) {
+  const { addElement, pan } = useBuilder();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `library-${type}`,
     data: { type, label, width, height },
@@ -59,15 +60,36 @@ function DraggableComponent({ type, icon: Icon, label, width, height }: Draggabl
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Add element to canvas center on double-click
+  const handleDoubleClick = () => {
+    const canvasRect = document.querySelector('[data-canvas]')?.getBoundingClientRect();
+    if (canvasRect) {
+      const centerX = Math.round((canvasRect.width / 2 - width / 2 - pan.x) / 20) * 20;
+      const centerY = Math.round((canvasRect.height / 2 - height / 2 - pan.y) / 20) * 20;
+
+      addElement({
+        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: type as any,
+        x: centerX,
+        y: centerY,
+        width,
+        height,
+        label,
+      });
+    }
+  };
+
   return (
     <motion.div
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
-      className="component-card group"
+      className="component-card group cursor-pointer"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      onDoubleClick={handleDoubleClick}
+      title="Double-click to add to canvas"
     >
       <div className="flex flex-col items-center gap-1.5">
         <div className="w-8 h-8 rounded-md bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
@@ -120,8 +142,8 @@ export function LeftSidebar() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['Layout', 'Elements']);
 
   const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => 
-      prev.includes(category) 
+    setExpandedCategories(prev =>
+      prev.includes(category)
         ? prev.filter(c => c !== category)
         : [...prev, category]
     );
@@ -129,14 +151,14 @@ export function LeftSidebar() {
 
   if (!leftSidebarOpen) {
     return (
-      <motion.div 
+      <motion.div
         className="w-10 glass-panel border-r border-white/[0.06] flex flex-col items-center py-2"
         initial={{ width: 0, opacity: 0 }}
         animate={{ width: 40, opacity: 1 }}
       >
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-8 w-8"
           onClick={() => setLeftSidebarOpen(true)}
         >
@@ -147,7 +169,7 @@ export function LeftSidebar() {
   }
 
   return (
-    <motion.aside 
+    <motion.aside
       className="w-56 glass-panel border-r border-white/[0.06] flex flex-col overflow-hidden"
       initial={{ width: 0, opacity: 0 }}
       animate={{ width: 224, opacity: 1 }}
@@ -157,9 +179,9 @@ export function LeftSidebar() {
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.04]">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Components</span>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-6 w-6"
           onClick={() => setLeftSidebarOpen(false)}
         >
@@ -171,7 +193,7 @@ export function LeftSidebar() {
       <div className="p-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input 
+          <Input
             placeholder="Search components..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -189,15 +211,14 @@ export function LeftSidebar() {
               onClick={() => toggleCategory(category.category)}
             >
               {category.category}
-              <ChevronDown 
-                className={`w-3 h-3 transition-transform ${
-                  expandedCategories.includes(category.category) ? '' : '-rotate-90'
-                }`}
+              <ChevronDown
+                className={`w-3 h-3 transition-transform ${expandedCategories.includes(category.category) ? '' : '-rotate-90'
+                  }`}
               />
             </button>
             <AnimatePresence>
               {expandedCategories.includes(category.category) && (
-                <motion.div 
+                <motion.div
                   className="component-grid"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
@@ -205,7 +226,7 @@ export function LeftSidebar() {
                   transition={{ duration: 0.15 }}
                 >
                   {category.items.map((item) => (
-                    <DraggableComponent 
+                    <DraggableComponent
                       key={item.type}
                       type={item.type}
                       icon={item.icon}

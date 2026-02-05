@@ -2,14 +2,9 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { useBuilder, CanvasElement } from '@/contexts/BuilderContext';
-import { 
-  Layout, 
-  Navigation2, 
-  Type, 
-  Image, 
-  Square, 
-  CreditCard,
-  Sparkles,
+import { ElementRenderer } from './renderers';
+import {
+  Layout,
   Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,23 +17,11 @@ interface CanvasItemProps {
 }
 
 function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
-  const { updateElement, removeElement } = useBuilder();
+  const { updateElement, removeElement, previewMode } = useBuilder();
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, elementX: 0, elementY: 0 });
   const [resizeStart, setResizeStart] = useState({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
-
-  const IconMap: Record<string, React.ElementType> = {
-    section: Layout,
-    navbar: Navigation2,
-    hero: Sparkles,
-    button: Square,
-    text: Type,
-    image: Image,
-    card: CreditCard,
-  };
-
-  const Icon = IconMap[element.type] || Square;
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isResizing) return;
@@ -69,21 +52,21 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
       if (isDragging) {
         const dx = (e.clientX - dragStart.x) / zoom;
         const dy = (e.clientY - dragStart.y) / zoom;
-        
+
         // Snap to grid (20px)
         const newX = Math.round((dragStart.elementX + dx) / 20) * 20;
         const newY = Math.round((dragStart.elementY + dy) / 20) * 20;
-        
+
         updateElement(element.id, { x: newX, y: newY });
       }
-      
+
       if (isResizing) {
         const dx = (e.clientX - resizeStart.mouseX) / zoom;
         const dy = (e.clientY - resizeStart.mouseY) / zoom;
-        
+
         const newWidth = Math.max(40, Math.round((resizeStart.width + dx) / 20) * 20);
         const newHeight = Math.max(40, Math.round((resizeStart.height + dy) / 20) * 20);
-        
+
         updateElement(element.id, { width: newWidth, height: newHeight });
       }
     };
@@ -106,41 +89,37 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
 
   return (
     <motion.div
-      className={`absolute rounded-lg border transition-colors ${
-        isSelected 
-          ? 'border-primary shadow-glow-sm' 
-          : 'border-white/[0.08] hover:border-primary/50'
-      } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`absolute rounded-lg transition-colors ${previewMode
+        ? 'border-transparent'
+        : isSelected
+          ? 'border-2 border-primary shadow-glow-sm'
+          : 'border border-white/[0.08] hover:border-primary/50'
+        } ${!previewMode && (isDragging ? 'cursor-grabbing' : 'cursor-grab')}`}
       style={{
         left: element.x,
         top: element.y,
         width: element.width,
         height: element.height,
       }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={previewMode ? undefined : handleMouseDown}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      whileHover={{ borderColor: isSelected ? undefined : 'hsl(var(--primary) / 0.5)' }}
+      whileHover={previewMode ? undefined : { borderColor: isSelected ? undefined : 'hsl(var(--primary) / 0.5)' }}
     >
-      {/* Element content */}
-      <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-lg overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <Icon className="w-6 h-6" />
-            <span className="text-xs font-medium">{element.label}</span>
-          </div>
-        </div>
+      {/* Element content - Live renderer */}
+      <div className="absolute inset-0 rounded-lg overflow-hidden">
+        <ElementRenderer element={element} isEditing={!previewMode} />
       </div>
 
-      {/* Selection overlay */}
-      {isSelected && (
+      {/* Selection overlay - Only in edit mode */}
+      {!previewMode && isSelected && (
         <>
           {/* Delete button */}
           <Button
             variant="destructive"
             size="icon"
-            className="absolute -top-3 -right-3 h-6 w-6 rounded-full shadow-lg"
+            className="absolute -top-3 -right-3 h-6 w-6 rounded-full shadow-lg z-10"
             onClick={(e) => {
               e.stopPropagation();
               removeElement(element.id);
@@ -153,7 +132,7 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
           {['nw', 'ne', 'sw', 'se'].map((corner) => (
             <div
               key={corner}
-              className="resize-handle"
+              className="resize-handle z-10"
               style={{
                 top: corner.includes('n') ? -5 : 'auto',
                 bottom: corner.includes('s') ? -5 : 'auto',
@@ -176,9 +155,15 @@ export function Canvas() {
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0, panX: 0, panY: 0 });
 
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: 'canvas',
   });
+
+  // Combine refs for droppable area
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    setDroppableRef(node);
+    (canvasRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+  }, [setDroppableRef]);
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     // Middle click or space + left click for panning
@@ -245,13 +230,14 @@ export function Canvas() {
   }, [isPanning, panStart, setPan]);
 
   return (
-    <div 
-      ref={setNodeRef}
-      className="flex-1 relative overflow-hidden bg-canvas"
+    <div
+      ref={combinedRef}
+      className={`flex-1 relative overflow-hidden bg-canvas ${isOver ? 'ring-2 ring-primary/50 ring-inset' : ''}`}
+      data-canvas
     >
       {/* Grid background */}
-      <div 
-        className="absolute inset-0 canvas-grid-pattern opacity-30"
+      <div
+        className="absolute inset-0 canvas-grid-pattern opacity-30 pointer-events-none"
         style={{
           backgroundPosition: `${pan.x % 20}px ${pan.y % 20}px`,
           backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
@@ -260,7 +246,6 @@ export function Canvas() {
 
       {/* Canvas workspace */}
       <div
-        ref={canvasRef}
         className={`absolute inset-0 ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
         onMouseDown={handleCanvasMouseDown}
       >
@@ -301,7 +286,7 @@ export function Canvas() {
       {/* Empty state */}
       {elements.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <motion.div 
+          <motion.div
             className="text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

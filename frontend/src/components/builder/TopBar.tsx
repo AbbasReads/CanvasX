@@ -1,15 +1,18 @@
 import { motion } from 'framer-motion';
-import { 
-  ChevronRight, 
-  Users, 
-  Undo2, 
-  Redo2, 
-  ZoomIn, 
+import {
+  ChevronRight,
+  Users,
+  Undo2,
+  Redo2,
+  ZoomIn,
   ZoomOut,
   Command,
   Layers,
   Settings,
-  Eye
+  Eye,
+  EyeOff,
+  Code,
+  Pencil
 } from 'lucide-react';
 import { useBuilder } from '@/contexts/BuilderContext';
 import { Button } from '@/components/ui/button';
@@ -22,18 +25,21 @@ const mockAvatars = [
 ];
 
 export function TopBar() {
-  const { 
-    zoom, 
-    setZoom, 
-    undo, 
-    redo, 
-    canUndo, 
+  const {
+    zoom,
+    setZoom,
+    undo,
+    redo,
+    canUndo,
     canRedo,
-    setCommandPaletteOpen 
+    setCommandPaletteOpen,
+    previewMode,
+    setPreviewMode,
+    setExportDialogOpen
   } = useBuilder();
 
   return (
-    <motion.header 
+    <motion.header
       className="h-12 glass-panel border-b border-white/[0.06] flex items-center justify-between px-4 z-50 relative"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -65,9 +71,9 @@ export function TopBar() {
         <div className="flex items-center gap-0.5 mr-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={undo}
                 disabled={!canUndo}
@@ -79,9 +85,9 @@ export function TopBar() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={redo}
                 disabled={!canRedo}
@@ -95,18 +101,18 @@ export function TopBar() {
 
         {/* Zoom controls */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-secondary/50 border border-white/[0.04]">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-6 w-6"
             onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </Button>
           <span className="text-xs font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-6 w-6"
             onClick={() => setZoom(Math.min(2, zoom + 0.25))}
           >
@@ -117,9 +123,9 @@ export function TopBar() {
         {/* Command palette trigger */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-8 w-8 ml-2"
               onClick={() => setCommandPaletteOpen(true)}
             >
@@ -137,7 +143,7 @@ export function TopBar() {
           {mockAvatars.map((avatar, i) => (
             <Tooltip key={avatar.id}>
               <TooltipTrigger asChild>
-                <motion.div 
+                <motion.div
                   className={`w-7 h-7 rounded-full ${avatar.color} border-2 border-background flex items-center justify-center text-xs font-medium text-white cursor-pointer`}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -150,7 +156,7 @@ export function TopBar() {
               <TooltipContent>{avatar.name}</TooltipContent>
             </Tooltip>
           ))}
-          <motion.button 
+          <motion.button
             className="w-7 h-7 rounded-full bg-secondary border-2 border-background flex items-center justify-center hover:bg-secondary/80 transition-colors"
             whileHover={{ scale: 1.1 }}
           >
@@ -160,14 +166,34 @@ export function TopBar() {
 
         <div className="w-px h-6 bg-border" />
 
-        {/* Preview button */}
+        {/* Preview toggle */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Eye className="w-4 h-4" />
+            <Button
+              variant={previewMode ? 'default' : 'ghost'}
+              size="icon"
+              className={`h-8 w-8 ${previewMode ? 'bg-primary text-primary-foreground' : ''}`}
+              onClick={() => setPreviewMode(!previewMode)}
+            >
+              {previewMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Preview</TooltipContent>
+          <TooltipContent>{previewMode ? 'Exit Preview' : 'Preview'}</TooltipContent>
+        </Tooltip>
+
+        {/* Export Code */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setExportDialogOpen(true)}
+            >
+              <Code className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Export Code</TooltipContent>
         </Tooltip>
 
         {/* Settings */}
@@ -185,15 +211,15 @@ export function TopBar() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Button 
+          <Button
             className="h-8 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm relative overflow-hidden group"
           >
             <span className="relative z-10">Publish</span>
-            <motion.div 
+            <motion.div
               className="absolute inset-0 bg-gradient-to-r from-primary via-primary-glow to-primary opacity-0 group-hover:opacity-100 transition-opacity"
               initial={false}
             />
-            <motion.div 
+            <motion.div
               className="absolute inset-0 opacity-0 group-hover:opacity-100"
               style={{
                 boxShadow: '0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3)'

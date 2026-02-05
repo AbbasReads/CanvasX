@@ -1,4 +1,4 @@
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useSensor, useSensors, PointerSensor, pointerWithin } from '@dnd-kit/core';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BuilderProvider, useBuilder, CanvasElement } from '@/contexts/BuilderContext';
@@ -7,12 +7,13 @@ import { LeftSidebar } from './LeftSidebar';
 import { RightSidebar } from './RightSidebar';
 import { Canvas } from './Canvas';
 import { CommandPalette } from './CommandPalette';
-import { 
-  Layout, 
-  Navigation2, 
-  Type, 
-  Image, 
-  Square, 
+import { ExportDialog } from './ExportDialog';
+import {
+  Layout,
+  Navigation2,
+  Type,
+  Image,
+  Square,
   CreditCard,
   Sparkles
 } from 'lucide-react';
@@ -28,7 +29,7 @@ const IconMap: Record<string, React.ElementType> = {
 };
 
 function BuilderContent() {
-  const { addElement, pan } = useBuilder();
+  const { addElement, pan, exportDialogOpen, setExportDialogOpen } = useBuilder();
   const [activeDragData, setActiveDragData] = useState<{ type: string; label: string; width: number; height: number } | null>(null);
 
   const sensors = useSensors(
@@ -47,26 +48,51 @@ function BuilderContent() {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { over, active, delta } = event;
-    
-    if (over?.id === 'canvas' && activeDragData) {
+    const { over, delta } = event;
+
+    console.log('DragEnd:', { over, activeDragData, delta });
+
+    // Always try to add element if we have drag data
+    if (activeDragData) {
       const canvasRect = document.querySelector('[data-canvas]')?.getBoundingClientRect();
-      
-      // Calculate drop position
-      const x = Math.max(0, Math.round((event.activatorEvent as MouseEvent).clientX + delta.x - (canvasRect?.left || 0) - pan.x) / 20) * 20;
-      const y = Math.max(0, Math.round((event.activatorEvent as MouseEvent).clientY + delta.y - (canvasRect?.top || 0) - pan.y) / 20) * 20;
+      console.log('Canvas rect:', canvasRect);
 
-      const newElement: CanvasElement = {
-        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: activeDragData.type as CanvasElement['type'],
-        x,
-        y,
-        width: activeDragData.width,
-        height: activeDragData.height,
-        label: activeDragData.label,
-      };
+      if (canvasRect) {
+        const mouseX = (event.activatorEvent as MouseEvent).clientX + delta.x;
+        const mouseY = (event.activatorEvent as MouseEvent).clientY + delta.y;
 
-      addElement(newElement);
+        console.log('Mouse position:', { mouseX, mouseY });
+
+        // Check if drop position is within or near the canvas area
+        const isInCanvas =
+          mouseX >= canvasRect.left &&
+          mouseX <= canvasRect.right &&
+          mouseY >= canvasRect.top &&
+          mouseY <= canvasRect.bottom;
+
+        console.log('isInCanvas:', isInCanvas, 'over:', over?.id);
+
+        if (isInCanvas || over?.id === 'canvas') {
+          // Calculate drop position relative to canvas
+          const x = Math.max(0, Math.round((mouseX - canvasRect.left - pan.x) / 20) * 20);
+          const y = Math.max(0, Math.round((mouseY - canvasRect.top - pan.y) / 20) * 20);
+
+          console.log('Adding element at:', { x, y });
+
+          const newElement: CanvasElement = {
+            id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            type: activeDragData.type as CanvasElement['type'],
+            x,
+            y,
+            width: activeDragData.width,
+            height: activeDragData.height,
+            label: activeDragData.label,
+          };
+
+          addElement(newElement);
+          console.log('Element added:', newElement);
+        }
+      }
     }
 
     setActiveDragData(null);
@@ -75,25 +101,30 @@ function BuilderContent() {
   const ActiveIcon = activeDragData ? IconMap[activeDragData.type] || Square : Square;
 
   return (
-    <DndContext 
+    <DndContext
       sensors={sensors}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <div className="h-screen w-full flex flex-col overflow-hidden bg-background">
         <TopBar />
-        
+
         <div className="flex-1 flex overflow-hidden">
           <LeftSidebar />
-          
-          <div className="flex-1 relative" data-canvas>
+
+          <div className="flex-1 flex flex-col relative" data-canvas>
             <Canvas />
           </div>
-          
+
           <RightSidebar />
         </div>
 
         <CommandPalette />
+
+        {/* Export Dialog */}
+        <ExportDialog open={exportDialogOpen} onOpenChange={setExportDialogOpen} />
+
 
         {/* Drag overlay */}
         <DragOverlay>

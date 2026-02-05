@@ -1,4 +1,5 @@
-import { useState, createContext, useContext, useCallback, ReactNode } from 'react';
+import { useState, createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
+import { useTamboContextHelpers } from '@tambo-ai/react';
 
 // Types for canvas elements
 export interface CanvasElement {
@@ -23,7 +24,7 @@ interface BuilderContextType {
   selectedId: string | null;
   zoom: number;
   pan: { x: number; y: number };
-  
+
   // Actions
   setElements: (elements: CanvasElement[]) => void;
   addElement: (element: CanvasElement) => void;
@@ -32,13 +33,13 @@ interface BuilderContextType {
   selectElement: (id: string | null) => void;
   setZoom: (zoom: number) => void;
   setPan: (pan: { x: number; y: number }) => void;
-  
+
   // History
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  
+
   // UI state
   commandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
@@ -46,6 +47,12 @@ interface BuilderContextType {
   setLeftSidebarOpen: (open: boolean) => void;
   rightSidebarOpen: boolean;
   setRightSidebarOpen: (open: boolean) => void;
+
+  // Preview & Export
+  previewMode: boolean;
+  setPreviewMode: (preview: boolean) => void;
+  exportDialogOpen: boolean;
+  setExportDialogOpen: (open: boolean) => void;
 }
 
 const BuilderContext = createContext<BuilderContextType | null>(null);
@@ -56,15 +63,25 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  
+
   // History for undo/redo
   const [history, setHistory] = useState<HistoryState[]>([{ elements: [], timestamp: Date.now() }]);
   const [historyIndex, setHistoryIndex] = useState(0);
-  
+
   // UI state
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+
+  // Preview & Export
+  const [previewMode, setPreviewMode] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Tambo context helpers - expose updateElement to AI tools
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  // We need to define updateElement before the useEffect but also need pushHistory
+  // So we'll move the Tambo registration after all callbacks are defined
 
   const pushHistory = useCallback((newElements: CanvasElement[]) => {
     setHistory(prev => {
@@ -87,7 +104,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }, [elements, pushHistory]);
 
   const updateElement = useCallback((id: string, updates: Partial<CanvasElement>) => {
-    const newElements = elements.map(el => 
+    const newElements = elements.map(el =>
       el.id === id ? { ...el, ...updates } : el
     );
     setElementsInternal(newElements);
@@ -121,6 +138,23 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }
   }, [historyIndex, history]);
 
+  // Register builder actions with Tambo for AI tool access
+  const selectedElement = elements.find(el => el.id === selectedId);
+
+  useEffect(() => {
+    addContextHelper('builderActions', () => ({
+      updateElement,
+      selectedElementId: selectedId,
+      selectedElementType: selectedElement?.type,
+      selectedElementProps: selectedElement?.props,
+      availableElements: elements.map(el => ({ id: el.id, type: el.type, label: el.label })),
+    }));
+
+    return () => {
+      removeContextHelper('builderActions');
+    };
+  }, [updateElement, selectedId, selectedElement, elements, addContextHelper, removeContextHelper]);
+
   const value: BuilderContextType = {
     elements,
     selectedId,
@@ -143,6 +177,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     setLeftSidebarOpen,
     rightSidebarOpen,
     setRightSidebarOpen,
+    previewMode,
+    setPreviewMode,
+    exportDialogOpen,
+    setExportDialogOpen,
   };
 
   return (
