@@ -12,7 +12,7 @@ import {
 import { useBuilder } from '@/contexts/BuilderContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { generateHTML, generateReactCode, generateCSS } from '@/lib/codeGenerator';
+import { generateHTML, generateReactCode, generateCSS, generateReactTailwind } from '@/lib/codeGenerator';
 
 interface ExportDialogProps {
     open: boolean;
@@ -27,6 +27,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
     const htmlCode = generateHTML(elements);
     const reactCode = generateReactCode(elements);
     const cssCode = generateCSS(elements);
+    const tailwindCode = generateReactTailwind(elements);
 
     const handleCopy = async (code: string, tab: string) => {
         await navigator.clipboard.writeText(code);
@@ -51,6 +52,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
             case 'html': return htmlCode;
             case 'react': return reactCode;
             case 'css': return cssCode;
+            case 'tailwind': return tailwindCode;
             default: return htmlCode;
         }
     };
@@ -60,6 +62,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
             case 'html': return 'index.html';
             case 'react': return 'MyPage.tsx';
             case 'css': return 'styles.css';
+            case 'tailwind': return 'GeneratedPage.tsx';
             default: return 'code.txt';
         }
     };
@@ -118,6 +121,10 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                                         <FileCode2 className="w-4 h-4" />
                                         React
                                     </TabsTrigger>
+                                    <TabsTrigger value="tailwind" className="flex-1 gap-2">
+                                        <Code className="w-4 h-4" />
+                                        Tailwind
+                                    </TabsTrigger>
                                     <TabsTrigger value="css" className="flex-1 gap-2">
                                         <Code className="w-4 h-4" />
                                         CSS
@@ -131,6 +138,9 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                                 </TabsContent>
                                 <TabsContent value="react" className="h-full m-0">
                                     <CodeBlock code={reactCode} />
+                                </TabsContent>
+                                <TabsContent value="tailwind" className="h-full m-0">
+                                    <CodeBlock code={tailwindCode} />
                                 </TabsContent>
                                 <TabsContent value="css" className="h-full m-0">
                                     <CodeBlock code={cssCode} />
@@ -182,9 +192,9 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
 // Code block component with syntax highlighting appearance
 function CodeBlock({ code }: { code: string }) {
     return (
-        <div className="h-full rounded-lg bg-[#0d1117] border border-white/[0.06] overflow-hidden">
+        <div className="h-full max-h-[400px] rounded-lg bg-[#0d1117] border border-white/[0.06] flex flex-col">
             {/* Code header */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#161b22] border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#161b22] border-b border-white/[0.06] shrink-0">
                 <div className="flex gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
                     <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
@@ -192,7 +202,7 @@ function CodeBlock({ code }: { code: string }) {
                 </div>
             </div>
             {/* Code content */}
-            <pre className="p-4 overflow-auto h-[calc(100%-40px)] text-sm">
+            <pre className="flex-1 p-4 overflow-auto text-sm">
                 <code className="text-gray-300 font-mono whitespace-pre">
                     {code}
                 </code>
