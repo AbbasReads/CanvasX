@@ -89,10 +89,10 @@ export function NavbarRenderer({ element }: RendererProps) {
     };
 
     const isCentered = variantStyle === 'centered';
-    const accentColor = customStyles.backgroundColor || tokens.colors.accent;
+    const accentColor = (element.props?.accentColor as string) || tokens.colors.accent;
 
     return (
-        <nav className="w-full h-full flex items-center" style={{ ...variants[variantStyle], padding: '0 40px' }}>
+        <nav className="w-full h-full flex items-center" style={{ ...variants[variantStyle], padding: '0 40px', ...customStyles }}>
             {isCentered ? (
                 <>
                     <div className="flex items-center gap-8 flex-1">

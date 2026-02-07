@@ -121,7 +121,7 @@ The tool will apply changes to the currently selected element in the canvas buil
             appliedChanges.push(`text color → ${input.textColor}`);
         }
         if (input.accentColor !== undefined) {
-            styles.backgroundColor = input.accentColor; // Use as background for accent elements
+            updates.accentColor = input.accentColor;
             appliedChanges.push(`accent color → ${input.accentColor}`);
         }
         if (input.background !== undefined) {
