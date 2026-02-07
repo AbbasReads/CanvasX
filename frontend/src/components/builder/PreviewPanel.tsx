@@ -50,10 +50,12 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
         return () => {
             if (copyTimer.current) {
                 window.clearTimeout(copyTimer.current);
+                copyTimer.current = null;
             }
 
             if (previewBlobUrl.current) {
                 URL.revokeObjectURL(previewBlobUrl.current);
+                previewBlobUrl.current = null;
             }
         };
     }, []);
@@ -108,6 +110,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
         try {
             if (previewBlobUrl.current) {
                 URL.revokeObjectURL(previewBlobUrl.current);
+                previewBlobUrl.current = null;
             }
 
             const blob = new Blob([previewHtml], { type: 'text/html' });
@@ -120,18 +123,11 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                 previewBlobUrl.current = null;
                 return;
             }
-
-            const revoke = () => {
-                URL.revokeObjectURL(url);
-                if (previewBlobUrl.current === url) {
-                    previewBlobUrl.current = null;
-                }
-            };
-
-            newTab.addEventListener('load', revoke, { once: true });
-            window.setTimeout(revoke, 60000);
         } catch {
-            // noop
+            if (previewBlobUrl.current) {
+                URL.revokeObjectURL(previewBlobUrl.current);
+                previewBlobUrl.current = null;
+            }
         }
     };
 
