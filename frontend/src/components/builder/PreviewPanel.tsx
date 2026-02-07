@@ -45,6 +45,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
 
     const copyTimer = useRef<number | null>(null);
     const previewBlobUrl = useRef<string | null>(null);
+    const openInNewTabTimer = useRef<number | null>(null);
 
     useEffect(() => {
         return () => {
@@ -56,6 +57,11 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
             if (previewBlobUrl.current) {
                 URL.revokeObjectURL(previewBlobUrl.current);
                 previewBlobUrl.current = null;
+            }
+
+            if (openInNewTabTimer.current) {
+                window.clearTimeout(openInNewTabTimer.current);
+                openInNewTabTimer.current = null;
             }
         };
     }, []);
@@ -124,16 +130,61 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                 previewBlobUrl.current = null;
             }
 
-            const blob = new Blob([previewHtml], { type: 'text/html' });
+            if (openInNewTabTimer.current) {
+                window.clearTimeout(openInNewTabTimer.current);
+                openInNewTabTimer.current = null;
+            }
+
+            const bytes = new TextEncoder().encode(previewHtml);
+            let binary = '';
+            for (const byte of bytes) {
+                binary += String.fromCharCode(byte);
+            }
+            const base64 = btoa(binary);
+
+            const wrapperHtml = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      iframe { width: 100%; height: 100%; border: 0; }
+    </style>
+  </head>
+  <body>
+    <iframe id="preview" sandbox=""></iframe>
+    <script>
+      (function () {
+        var base64 = ${JSON.stringify(base64)};
+        var binary = atob(base64);
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        var html = new TextDecoder().decode(bytes);
+        document.getElementById('preview').srcdoc = html;
+      })();
+    </script>
+  </body>
+</html>`;
+
+            const blob = new Blob([wrapperHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             previewBlobUrl.current = url;
 
-            const newTab = window.open(url, '_blank');
+            const newTab = window.open(url, '_blank', 'noopener,noreferrer');
             if (!newTab) {
                 URL.revokeObjectURL(url);
                 previewBlobUrl.current = null;
                 return;
             }
+
+            openInNewTabTimer.current = window.setTimeout(() => {
+                if (previewBlobUrl.current !== url) return;
+                URL.revokeObjectURL(url);
+                previewBlobUrl.current = null;
+                openInNewTabTimer.current = null;
+            }, 60000);
         } catch {
             if (previewBlobUrl.current) {
                 URL.revokeObjectURL(previewBlobUrl.current);
