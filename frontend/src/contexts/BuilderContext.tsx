@@ -78,6 +78,8 @@ interface BuilderContextType {
   setPreviewMode: (preview: boolean) => void;
   exportDialogOpen: boolean;
   setExportDialogOpen: (open: boolean) => void;
+  previewPanelOpen: boolean;
+  setPreviewPanelOpen: (open: boolean) => void;
 
   // Theme
   activeTheme: ThemePalette;
@@ -112,6 +114,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // Preview & Export
   const [previewMode, setPreviewMode] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [previewPanelOpen, setPreviewPanelOpen] = useState(false);
 
   // Theme
   const [activeTheme, setActiveTheme] = useState<ThemePalette>(themePalettes[0]);
@@ -232,6 +235,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     setPreviewMode,
     exportDialogOpen,
     setExportDialogOpen,
+    previewPanelOpen,
+    setPreviewPanelOpen,
     activeTheme,
     setActiveTheme,
     leftSidebarWidth,
