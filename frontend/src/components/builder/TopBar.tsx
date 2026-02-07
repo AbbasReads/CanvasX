@@ -43,7 +43,8 @@ export function TopBar() {
     activeTool,
     setActiveTool,
     activeTheme,
-    setActiveTheme
+    setActiveTheme,
+    setPreviewPanelOpen
   } = useBuilder();
 
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -195,9 +196,9 @@ export function TopBar() {
             {themeDropdownOpen && (
               <>
                 {/* Backdrop */}
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setThemeDropdownOpen(false)} 
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setThemeDropdownOpen(false)}
                 />
                 {/* Dropdown */}
                 <motion.div
@@ -213,9 +214,8 @@ export function TopBar() {
                   {themePalettes.map((theme) => (
                     <button
                       key={theme.id}
-                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-white/[0.06] transition-colors ${
-                        activeTheme.id === theme.id ? 'bg-white/[0.08]' : ''
-                      }`}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-white/[0.06] transition-colors ${activeTheme.id === theme.id ? 'bg-white/[0.08]' : ''
+                        }`}
                       onClick={() => {
                         setActiveTheme(theme);
                         setThemeDropdownOpen(false);
@@ -282,6 +282,22 @@ export function TopBar() {
             </Button>
           </TooltipTrigger>
           <TooltipContent>{previewMode ? 'Exit Preview' : 'Preview'}</TooltipContent>
+        </Tooltip>
+
+        {/* Live Preview Panel */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 gap-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-emerald-400 hover:text-emerald-300"
+              onClick={() => setPreviewPanelOpen(true)}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">Live Preview</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Open Live Preview</TooltipContent>
         </Tooltip>
 
         {/* Export Code */}

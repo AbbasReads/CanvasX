@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Search,
@@ -104,7 +104,7 @@ function NavbarPreview({ variantId }: { variantId: string }) {
     'navbar-transparent': { background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' },
   };
   const isCentered = variantId === 'navbar-centered';
-  
+
   return (
     <div className="w-full h-full flex items-center px-2 rounded" style={styles[variantId]}>
       <div className={`flex items-center gap-1 ${isCentered ? 'flex-1' : ''}`}>
@@ -131,9 +131,9 @@ function HeroPreview({ variantId }: { variantId: string }) {
   const isGradient = variantId === 'hero-gradient';
   const isSplit = variantId === 'hero-split';
   const isMinimal = variantId === 'hero-minimal';
-  
+
   return (
-    <div 
+    <div
       className={`w-full h-full rounded flex items-center justify-center p-2 ${isSplit ? 'flex-row' : 'flex-col'}`}
       style={isGradient ? { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' } : { background: '#1a1a2e' }}
     >
@@ -159,7 +159,7 @@ function HeroPreview({ variantId }: { variantId: string }) {
 function SectionPreview({ variantId }: { variantId: string }) {
   const isFeatures = variantId === 'section-features';
   const isCta = variantId === 'section-cta';
-  
+
   return (
     <div className="w-full h-full rounded bg-[#1a1a2e] p-2 flex flex-col items-center justify-center gap-1">
       <div className="w-8 h-1 rounded bg-white/60" />
@@ -188,10 +188,10 @@ function ButtonPreview({ variantId }: { variantId: string }) {
     'button-ghost': { background: 'transparent', color: 'white' },
     'button-gradient': { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' },
   };
-  
+
   return (
     <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center">
-      <div 
+      <div
         className="px-3 py-1 rounded text-[8px] font-medium"
         style={styles[variantId]}
       >
@@ -219,13 +219,12 @@ function TextPreview({ variantId }: { variantId: string }) {
 function ImagePreview({ variantId }: { variantId: string }) {
   const isAvatar = variantId === 'image-avatar';
   const isRounded = variantId === 'image-rounded';
-  
+
   return (
     <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center">
-      <div 
-        className={`bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center ${
-          isAvatar ? 'w-6 h-6 rounded-full' : isRounded ? 'w-10 h-6 rounded-lg' : 'w-10 h-6 rounded'
-        }`}
+      <div
+        className={`bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center ${isAvatar ? 'w-6 h-6 rounded-full' : isRounded ? 'w-10 h-6 rounded-lg' : 'w-10 h-6 rounded'
+          }`}
       >
         <Image className="w-2 h-2 text-white/50" />
       </div>
@@ -237,13 +236,12 @@ function CardPreview({ variantId }: { variantId: string }) {
   const isHorizontal = variantId === 'card-horizontal';
   const isOverlay = variantId === 'card-overlay';
   const isMinimal = variantId === 'card-minimal';
-  
+
   return (
     <div className="w-full h-full rounded bg-[#1a1a2e] flex items-center justify-center p-1">
-      <div 
-        className={`bg-white/5 border border-white/10 rounded overflow-hidden ${
-          isHorizontal ? 'flex flex-row w-full h-6' : 'flex flex-col w-10'
-        }`}
+      <div
+        className={`bg-white/5 border border-white/10 rounded overflow-hidden ${isHorizontal ? 'flex flex-row w-full h-6' : 'flex flex-col w-10'
+          }`}
       >
         {!isMinimal && !isOverlay && (
           <div className={`bg-white/10 ${isHorizontal ? 'w-6 h-full' : 'w-full h-4'}`} />
@@ -278,14 +276,14 @@ function MarqueePreview() {
 function FeaturesPreview({ variantId }: { variantId: string }) {
   const isBento = variantId === 'features-bento';
   const isList = variantId === 'features-list';
-  
+
   return (
     <div className="w-full h-full rounded bg-[#09090b] p-2 flex flex-col items-center gap-1">
       <div className="w-8 h-1 rounded bg-white/60 mb-1" />
       <div className={`flex gap-1 ${isList ? 'flex-col' : 'flex-row'}`}>
         {[1, 2, 3].map((i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className={`rounded bg-white/5 border border-white/10 p-1 ${isBento && i === 1 ? 'col-span-2 w-8' : 'w-4'} ${isList ? 'w-full h-2' : 'h-4'}`}
           >
             <div className="w-2 h-1 rounded bg-primary/60 mb-0.5" />
@@ -298,7 +296,7 @@ function FeaturesPreview({ variantId }: { variantId: string }) {
 
 function TestimonialsPreview({ variantId }: { variantId: string }) {
   const isSingle = variantId === 'testimonials-single';
-  
+
   return (
     <div className="w-full h-full rounded bg-[#09090b] p-2 flex items-center justify-center gap-1">
       {(isSingle ? [1] : [1, 2, 3]).map((i) => (
@@ -345,7 +343,7 @@ function FaqPreview() {
 
 function FooterPreview({ variantId }: { variantId: string }) {
   const isSimple = variantId === 'footer-simple';
-  
+
   return (
     <div className="w-full h-full rounded bg-[#18181b] border-t border-white/10 p-2 flex items-center">
       {isSimple ? (
@@ -435,13 +433,50 @@ interface ComponentCardProps {
   onClick: () => void;
 }
 
-function ComponentCard({ type, icon: Icon, label, onClick }: ComponentCardProps) {
+function DraggableComponentCard({ type, icon: Icon, label, width, height, onClick }: ComponentCardProps) {
+  const dragId = `draggable-${type}`;
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: dragId,
+    data: { type, label, width, height },
+  });
+
+  // Track if drag happened to prevent click after drag
+  const didDrag = useRef(false);
+
+  // Reset didDrag when drag starts
+  if (isDragging && !didDrag.current) {
+    didDrag.current = true;
+  }
+
+  // Handle click - only fire if no drag occurred
+  const handleClick = (e: React.MouseEvent) => {
+    if (didDrag.current) {
+      didDrag.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onClick();
+  };
+
+  const style = transform
+    ? {
+      transform: CSS.Translate.toString(transform),
+      zIndex: isDragging ? 100 : undefined,
+      opacity: isDragging ? 0.8 : 1,
+    }
+    : undefined;
+
   return (
     <motion.div
-      className="component-card group cursor-pointer"
-      whileHover={{ scale: 1.02 }}
+      ref={setNodeRef}
+      style={style}
+      className={`component-card group cursor-grab active:cursor-grabbing ${isDragging ? 'ring-2 ring-primary shadow-lg' : ''}`}
+      whileHover={{ scale: isDragging ? 1 : 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick}
+      onClick={handleClick}
+      {...listeners}
+      {...attributes}
     >
       <div className="flex flex-col items-center gap-1.5">
         <div className="w-8 h-8 rounded-md bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
@@ -611,172 +646,172 @@ export function LeftSidebar() {
           </Button>
         </div>
 
-      <AnimatePresence mode="wait">
-        {selectedComponentType ? (
-          /* Variants View */
-          <motion.div
-            key="variants"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="flex-1 flex flex-col overflow-hidden"
-          >
-            {/* Back button */}
-            <div className="px-3 py-2 border-b border-white/[0.04]">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs gap-1"
-                onClick={() => setSelectedComponentType(null)}
-              >
-                <ArrowLeft className="w-3 h-3" />
-                Back
-              </Button>
-              <h3 className="text-sm font-medium mt-2 capitalize">{selectedComponentType} Styles</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Choose a style to add</p>
-            </div>
-
-            {/* Variants grid */}
-            <div className="flex-1 overflow-y-auto p-2">
-              <div className="grid grid-cols-1 gap-2">
-                {componentVariants[selectedComponentType]?.map((variant) => {
-                  const config = getComponentConfig(selectedComponentType);
-                  if (!config) return null;
-                  return (
-                    <VariantCard
-                      key={variant.id}
-                      variant={variant}
-                      componentType={selectedComponentType}
-                      componentConfig={config}
-                      onSelect={() => setSelectedComponentType(null)}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          /* Default Component Library View */
-          <motion.div
-            key="library"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="flex-1 flex flex-col overflow-hidden"
-          >
-            {/* Search */}
-            <div className="p-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Search components..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-8 pl-8 text-xs bg-secondary/50 border-white/[0.04] focus:border-primary/30"
-                />
-              </div>
-            </div>
-
-            {/* Component Library */}
-            <div className="flex-1 overflow-y-auto px-2 pb-2 min-h-0">
-              {componentLibrary.map((category) => (
-                <div key={category.category} className="mb-3">
-                  <button
-                    className="w-full flex items-center justify-between px-1 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
-                    onClick={() => toggleCategory(category.category)}
-                  >
-                    {category.category}
-                    <ChevronDown
-                      className={`w-3 h-3 transition-transform ${expandedCategories.includes(category.category) ? '' : '-rotate-90'
-                        }`}
-                    />
-                  </button>
-                  <AnimatePresence>
-                    {expandedCategories.includes(category.category) && (
-                      <motion.div
-                        className="component-grid"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        {category.items.map((item) => (
-                          <ComponentCard
-                            key={item.type}
-                            type={item.type}
-                            icon={item.icon}
-                            label={item.label}
-                            width={item.width}
-                            height={item.height}
-                            onClick={() => setSelectedComponentType(item.type)}
-                          />
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Layers section */}
-      <div className="border-t border-white/[0.04]">
-        <div className="px-3 py-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Layers</span>
-        </div>
-        <div className="px-1 pb-2 max-h-40 overflow-y-auto">
-          {elements.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-4">No elements yet</p>
-          ) : (
-            <Reorder.Group
-              axis="y"
-              values={[...elements].reverse()}
-              onReorder={(newOrder) => {
-                // Reverse back to get the correct order for canvas rendering
-                setElements([...newOrder].reverse());
-              }}
-              className="space-y-0.5"
+        <AnimatePresence mode="wait">
+          {selectedComponentType ? (
+            /* Variants View */
+            <motion.div
+              key="variants"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col overflow-hidden"
             >
-              {[...elements].reverse().map((element) => (
-                <LayerItem
-                  key={element.id}
-                  element={element}
-                  isSelected={selectedId === element.id}
-                  onSelect={() => selectElement(element.id)}
-                />
-              ))}
-            </Reorder.Group>
+              {/* Back button */}
+              <div className="px-3 py-2 border-b border-white/[0.04]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1"
+                  onClick={() => setSelectedComponentType(null)}
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  Back
+                </Button>
+                <h3 className="text-sm font-medium mt-2 capitalize">{selectedComponentType} Styles</h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Choose a style to add</p>
+              </div>
+
+              {/* Variants grid */}
+              <div className="flex-1 overflow-y-auto p-2">
+                <div className="grid grid-cols-1 gap-2">
+                  {componentVariants[selectedComponentType]?.map((variant) => {
+                    const config = getComponentConfig(selectedComponentType);
+                    if (!config) return null;
+                    return (
+                      <VariantCard
+                        key={variant.id}
+                        variant={variant}
+                        componentType={selectedComponentType}
+                        componentConfig={config}
+                        onSelect={() => setSelectedComponentType(null)}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            /* Default Component Library View */
+            <motion.div
+              key="library"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="flex-1 flex flex-col overflow-hidden"
+            >
+              {/* Search */}
+              <div className="p-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search components..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-8 pl-8 text-xs bg-secondary/50 border-white/[0.04] focus:border-primary/30"
+                  />
+                </div>
+              </div>
+
+              {/* Component Library */}
+              <div className="flex-1 overflow-y-auto px-2 pb-2 min-h-0">
+                {componentLibrary.map((category) => (
+                  <div key={category.category} className="mb-3">
+                    <button
+                      className="w-full flex items-center justify-between px-1 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+                      onClick={() => toggleCategory(category.category)}
+                    >
+                      {category.category}
+                      <ChevronDown
+                        className={`w-3 h-3 transition-transform ${expandedCategories.includes(category.category) ? '' : '-rotate-90'
+                          }`}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {expandedCategories.includes(category.category) && (
+                        <motion.div
+                          className="component-grid"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          {category.items.map((item) => (
+                            <DraggableComponentCard
+                              key={item.type}
+                              type={item.type}
+                              icon={item.icon}
+                              label={item.label}
+                              width={item.width}
+                              height={item.height}
+                              onClick={() => setSelectedComponentType(item.type)}
+                            />
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           )}
+        </AnimatePresence>
+
+        {/* Layers section */}
+        <div className="border-t border-white/[0.04]">
+          <div className="px-3 py-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Layers</span>
+          </div>
+          <div className="px-1 pb-2 max-h-40 overflow-y-auto">
+            {elements.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">No elements yet</p>
+            ) : (
+              <Reorder.Group
+                axis="y"
+                values={[...elements].reverse()}
+                onReorder={(newOrder) => {
+                  // Reverse back to get the correct order for canvas rendering
+                  setElements([...newOrder].reverse());
+                }}
+                className="space-y-0.5"
+              >
+                {[...elements].reverse().map((element) => (
+                  <LayerItem
+                    key={element.id}
+                    element={element}
+                    isSelected={selectedId === element.id}
+                    onSelect={() => selectElement(element.id)}
+                  />
+                ))}
+              </Reorder.Group>
+            )}
+          </div>
         </div>
-      </div>
-    </motion.aside>
-    
-    {/* Resize handle */}
-    <div
-      className="w-1 cursor-col-resize hover:bg-primary/50 transition-colors absolute right-0 top-0 bottom-0 z-10"
-      onMouseDown={(e) => {
-        e.preventDefault();
-        setIsResizing(true);
-        const startX = e.clientX;
-        const startWidth = leftSidebarWidth;
-        
-        const handleMouseMove = (moveEvent: MouseEvent) => {
-          const newWidth = Math.max(180, Math.min(400, startWidth + moveEvent.clientX - startX));
-          setLeftSidebarWidth(newWidth);
-        };
-        
-        const handleMouseUp = () => {
-          setIsResizing(false);
-          document.removeEventListener('mousemove', handleMouseMove);
-          document.removeEventListener('mouseup', handleMouseUp);
-        };
-        
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-      }}
-    />
-  </div>
+      </motion.aside>
+
+      {/* Resize handle */}
+      <div
+        className="w-1 cursor-col-resize hover:bg-primary/50 transition-colors absolute right-0 top-0 bottom-0 z-10"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setIsResizing(true);
+          const startX = e.clientX;
+          const startWidth = leftSidebarWidth;
+
+          const handleMouseMove = (moveEvent: MouseEvent) => {
+            const newWidth = Math.max(180, Math.min(400, startWidth + moveEvent.clientX - startX));
+            setLeftSidebarWidth(newWidth);
+          };
+
+          const handleMouseUp = () => {
+            setIsResizing(false);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+          };
+
+          document.addEventListener('mousemove', handleMouseMove);
+          document.addEventListener('mouseup', handleMouseUp);
+        }}
+      />
+    </div>
   );
 }

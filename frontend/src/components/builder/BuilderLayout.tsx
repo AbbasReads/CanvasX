@@ -8,6 +8,7 @@ import { RightSidebar } from './RightSidebar';
 import { Canvas } from './Canvas';
 import { CommandPalette } from './CommandPalette';
 import { ExportDialog } from './ExportDialog';
+import { PreviewPanel } from './PreviewPanel';
 import {
   Layout,
   Navigation2,
@@ -29,7 +30,7 @@ const IconMap: Record<string, React.ElementType> = {
 };
 
 function BuilderContent() {
-  const { addElement, pan, exportDialogOpen, setExportDialogOpen } = useBuilder();
+  const { addElement, pan, exportDialogOpen, setExportDialogOpen, previewPanelOpen, setPreviewPanelOpen } = useBuilder();
   const [activeDragData, setActiveDragData] = useState<{ type: string; label: string; width: number; height: number } | null>(null);
 
   const sensors = useSensors(
@@ -124,6 +125,9 @@ function BuilderContent() {
 
         {/* Export Dialog */}
         <ExportDialog open={exportDialogOpen} onOpenChange={setExportDialogOpen} />
+
+        {/* Preview Panel */}
+        <PreviewPanel open={previewPanelOpen} onOpenChange={setPreviewPanelOpen} />
 
 
         {/* Drag overlay */}
