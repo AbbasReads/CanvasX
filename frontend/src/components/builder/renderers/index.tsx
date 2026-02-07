@@ -74,6 +74,13 @@ export function NavbarRenderer({ element }: RendererProps) {
     const tokens = createDesignTokens(activeTheme);
     const variantStyle = element.props?.style as string || 'minimal';
 
+    // Get configurable props with defaults
+    const brandName = (element.props?.brandName as string) || 'Acme';
+    const navLinks = (element.props?.navLinks as string[]) || ['Products', 'Solutions', 'Pricing', 'Company'];
+    const ctaText = (element.props?.ctaText as string) || (element.props?.text as string) || 'Get Started';
+    const signInText = (element.props?.signInText as string) || 'Sign in';
+    const customStyles = (element.props?.styles as React.CSSProperties) || {};
+
     const variants: Record<string, React.CSSProperties> = {
         minimal: { backgroundColor: tokens.colors.surface, borderBottom: `1px solid ${tokens.colors.border}` },
         centered: { backgroundColor: tokens.colors.surface, borderBottom: `1px solid ${tokens.colors.border}` },
@@ -82,38 +89,39 @@ export function NavbarRenderer({ element }: RendererProps) {
     };
 
     const isCentered = variantStyle === 'centered';
+    const accentColor = (element.props?.accentColor as string) || tokens.colors.accent;
 
     return (
-        <nav className="w-full h-full flex items-center" style={{ ...variants[variantStyle], padding: '0 40px' }}>
+        <nav className="w-full h-full flex items-center" style={{ ...variants[variantStyle], padding: '0 40px', ...customStyles }}>
             {isCentered ? (
                 <>
                     <div className="flex items-center gap-8 flex-1">
-                        {['Products', 'Solutions'].map((item) => <span key={item} style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{item}</span>)}
+                        {navLinks.slice(0, 2).map((item) => <span key={item} style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{item}</span>)}
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: tokens.colors.accent }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: accentColor }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
                         </div>
-                        <span style={{ fontWeight: 700, color: tokens.colors.text.primary, fontSize: '16px' }}>Acme</span>
+                        <span style={{ fontWeight: 700, color: customStyles.color || tokens.colors.text.primary, fontSize: '16px' }}>{brandName}</span>
                     </div>
                     <div className="flex items-center gap-8 flex-1 justify-end">
-                        {['Pricing', 'Company'].map((item) => <span key={item} style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{item}</span>)}
+                        {navLinks.slice(2, 4).map((item) => <span key={item} style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{item}</span>)}
                     </div>
                 </>
             ) : (
                 <>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: tokens.colors.accent }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: accentColor }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
                         </div>
-                        <span style={{ fontWeight: 700, color: tokens.colors.text.primary, fontSize: '16px' }}>Acme</span>
+                        <span style={{ fontWeight: 700, color: customStyles.color || tokens.colors.text.primary, fontSize: '16px' }}>{brandName}</span>
                     </div>
                     <div className="flex items-center gap-8 ml-12">
-                        {['Products', 'Solutions', 'Pricing', 'Company'].map((item) => <span key={item} style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{item}</span>)}
+                        {navLinks.map((item) => <span key={item} style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{item}</span>)}
                     </div>
                     <div className="flex items-center gap-3 ml-auto">
-                        <span style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>Sign in</span>
-                        <button style={{ padding: '8px 16px', backgroundColor: tokens.colors.accent, color: 'white', fontSize: '14px', fontWeight: 500, borderRadius: tokens.radius.md, border: 'none' }}>Get Started</button>
+                        <span style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: 500 }}>{signInText}</span>
+                        <button style={{ padding: '8px 16px', backgroundColor: accentColor, color: 'white', fontSize: '14px', fontWeight: 500, borderRadius: tokens.radius.md, border: 'none' }}>{ctaText}</button>
                     </div>
                 </>
             )}

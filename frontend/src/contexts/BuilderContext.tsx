@@ -1,5 +1,5 @@
 import { useState, createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
-import { useTamboContextHelpers } from '@tambo-ai/react';
+import { setBuilderStore, resetBuilderStore } from '@/lib/builderStore';
 
 // Types for canvas elements
 export interface CanvasElement {
@@ -120,11 +120,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(224);
   const [rightSidebarWidth, setRightSidebarWidth] = useState(280);
 
-  // Tambo context helpers - expose updateElement to AI tools
-  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
-
-  // We need to define updateElement before the useEffect but also need pushHistory
-  // So we'll move the Tambo registration after all callbacks are defined
+  // History and element management callbacks
 
   const pushHistory = useCallback((newElements: CanvasElement[]) => {
     setHistory(prev => {
@@ -189,22 +185,23 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }
   }, [historyIndex, history]);
 
-  // Register builder actions with Tambo for AI tool access
+  // Sync builder state to global store for Tambo AI tool access
   const selectedElement = elements.find(el => el.id === selectedId);
 
   useEffect(() => {
-    addContextHelper('builderActions', () => ({
+    setBuilderStore({
       updateElement,
       selectedElementId: selectedId,
-      selectedElementType: selectedElement?.type,
-      selectedElementProps: selectedElement?.props,
-      availableElements: elements.map(el => ({ id: el.id, type: el.type, label: el.label })),
-    }));
+      selectedElementType: selectedElement?.type || null,
+      selectedElementProps: selectedElement?.props || null,
+      elements,
+    });
+  }, [updateElement, selectedId, selectedElement, elements]);
 
-    return () => {
-      removeContextHelper('builderActions');
-    };
-  }, [updateElement, selectedId, selectedElement, elements, addContextHelper, removeContextHelper]);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => resetBuilderStore();
+  }, []);
 
   const value: BuilderContextType = {
     elements,
