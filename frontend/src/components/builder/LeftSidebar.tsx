@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Search,
@@ -443,16 +443,13 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
   // Track if drag happened to prevent click after drag
   const didDrag = useRef(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (isDragging) {
       didDrag.current = true;
+      return;
     }
-  }, [isDragging]);
 
-  useEffect(() => {
-    if (!isDragging) {
-      didDrag.current = false;
-    }
+    didDrag.current = false;
   }, [isDragging]);
 
   // Handle click - only fire if no drag occurred
