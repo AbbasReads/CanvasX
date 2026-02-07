@@ -72,15 +72,39 @@ export function RightSidebar() {
   const getTextFromContent = (content: unknown): string => {
     if (!content) return '';
     if (typeof content === 'string') return content;
+
     if (Array.isArray(content)) {
-      return content
-        .filter((part): part is { type: string; text?: string } =>
-          typeof part === 'object' && part !== null && 'text' in part
-        )
-        .map(part => part.text || '')
-        .join(' ')
-        .trim();
+      const textParts: string[] = [];
+
+      for (const part of content) {
+        if (typeof part === 'string') {
+          if (part.trim()) textParts.push(part);
+          continue;
+        }
+
+        if (typeof part !== 'object' || part === null) continue;
+        const p = part as Record<string, unknown>;
+
+        const text = p.text;
+        if (typeof text !== 'string' || !text.trim()) continue;
+
+        const type = p.type;
+        const isTypedText = type === 'text';
+        const isTextOnlyObject = type == null && Object.keys(p).length === 1;
+
+        if (isTypedText || isTextOnlyObject) {
+          textParts.push(text);
+        }
+      }
+
+      return textParts.join(' ').trim();
     }
+
+    if (typeof content === 'object' && content !== null) {
+      const obj = content as Record<string, unknown>;
+      if (obj.type === 'text' && typeof obj.text === 'string') return obj.text;
+    }
+
     return '';
   };
 
