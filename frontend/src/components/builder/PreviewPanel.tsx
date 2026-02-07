@@ -64,32 +64,42 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     const generatedHtml = useMemo(() => generateHTML(elements), [elements]);
     const generatedReact = useMemo(() => generateReactTailwind(elements), [elements]);
 
-    // Editable code state - starts with generated code
-    const [editableCode, setEditableCode] = useState(generatedHtml);
+    const [editableHtml, setEditableHtml] = useState(generatedHtml);
+    const [editableReact, setEditableReact] = useState(generatedReact);
+
+    const [isHtmlDirty, setIsHtmlDirty] = useState(false);
+    const [isReactDirty, setIsReactDirty] = useState(false);
+
+    const editableCode = codeType === 'html' ? editableHtml : editableReact;
 
     // The code that renders in the preview (custom HTML for preview, or generated)
     const previewHtml = useMemo(() => {
         if (codeType === 'html') {
-            return editableCode;
+            return editableHtml;
         }
         // For React, we can't execute it directly, show the HTML preview instead
         return generatedHtml;
-    }, [editableCode, codeType, generatedHtml]);
+    }, [codeType, editableHtml, generatedHtml]);
 
-    // Update editable code when elements change or code type switches
     useEffect(() => {
-        if (codeType === 'html') {
-            setEditableCode(generatedHtml);
-        } else {
-            setEditableCode(generatedReact);
+        if (!isHtmlDirty) {
+            setEditableHtml(generatedHtml);
         }
-    }, [elements, codeType, generatedHtml, generatedReact]);
+    }, [generatedHtml, isHtmlDirty]);
+
+    useEffect(() => {
+        if (!isReactDirty) {
+            setEditableReact(generatedReact);
+        }
+    }, [generatedReact, isReactDirty]);
 
     const handleResetCode = useCallback(() => {
         if (codeType === 'html') {
-            setEditableCode(generatedHtml);
+            setEditableHtml(generatedHtml);
+            setIsHtmlDirty(false);
         } else {
-            setEditableCode(generatedReact);
+            setEditableReact(generatedReact);
+            setIsReactDirty(false);
         }
     }, [codeType, generatedHtml, generatedReact]);
 
@@ -132,32 +142,31 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
         }
     };
 
-    if (!open) return null;
-
     return (
         <AnimatePresence>
-            <motion.div
-                className={`fixed inset-0 z-50 flex ${isFullscreen ? '' : 'items-center justify-center p-4'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-            >
-                {/* Backdrop */}
-                <div
-                    className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                    onClick={() => onOpenChange(false)}
-                />
-
-                {/* Panel */}
+            {open && (
                 <motion.div
-                    className={`relative bg-card border border-white/[0.08] shadow-2xl overflow-hidden flex flex-col ${isFullscreen
-                        ? 'w-full h-full rounded-none'
-                        : 'w-full max-w-7xl h-[90vh] rounded-xl'
-                        }`}
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className={`fixed inset-0 z-50 flex ${isFullscreen ? '' : 'items-center justify-center p-4'}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                 >
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                        onClick={() => onOpenChange(false)}
+                    />
+
+                    {/* Panel */}
+                    <motion.div
+                        className={`relative bg-card border border-white/[0.08] shadow-2xl overflow-hidden flex flex-col ${isFullscreen
+                            ? 'w-full h-full rounded-none'
+                            : 'w-full max-w-7xl h-[90vh] rounded-xl'
+                            }`}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-card/50 shrink-0">
                         <div className="flex items-center gap-4">
@@ -377,7 +386,16 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                 {/* Code textarea */}
                                 <textarea
                                     value={editableCode}
-                                    onChange={(e) => setEditableCode(e.target.value)}
+                                    onChange={(e) => {
+                                        if (codeType === 'html') {
+                                            setEditableHtml(e.target.value);
+                                            setIsHtmlDirty(true);
+                                            return;
+                                        }
+
+                                        setEditableReact(e.target.value);
+                                        setIsReactDirty(true);
+                                    }}
                                     className="flex-1 w-full p-4 bg-[#0d1117] text-gray-300 font-mono text-sm resize-none focus:outline-none leading-relaxed"
                                     spellCheck={false}
                                     placeholder="Edit your code here..."
@@ -441,8 +459,9 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                             </span>
                         </div>
                     </div>
+                    </motion.div>
                 </motion.div>
-            </motion.div>
+            )}
         </AnimatePresence>
     );
 }
