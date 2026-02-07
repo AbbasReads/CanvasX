@@ -70,42 +70,31 @@ export function RightSidebar() {
 
   // Helper to extract text from message content
   const getTextFromContent = (content: unknown): string => {
-    if (!content) return '';
-    if (typeof content === 'string') return content;
-
-    if (Array.isArray(content)) {
-      const textParts: string[] = [];
-
-      for (const part of content) {
-        if (typeof part === 'string') {
-          if (part.trim()) textParts.push(part);
-          continue;
-        }
-
-        if (typeof part !== 'object' || part === null) continue;
-        const p = part as Record<string, unknown>;
-
-        const text = p.text;
-        if (typeof text !== 'string' || !text.trim()) continue;
-
-        const type = p.type;
-        const isTypedText = type === 'text';
-        const isTextOnlyObject = type == null && Object.keys(p).length === 1;
-
-        if (isTypedText || isTextOnlyObject) {
-          textParts.push(text);
-        }
+    const extractTextPart = (value: unknown): string | null => {
+      if (typeof value === 'string') {
+        const text = value.trim();
+        return text.length > 0 ? text : null;
       }
 
-      return textParts.join(' ').trim();
+      if (!value || typeof value !== 'object') return null;
+
+      const obj = value as { type?: unknown; text?: unknown };
+      if (obj.type !== 'text') return null;
+      if (typeof obj.text !== 'string') return null;
+
+      const text = obj.text.trim();
+      return text.length > 0 ? text : null;
+    };
+
+    if (Array.isArray(content)) {
+      return content
+        .map(extractTextPart)
+        .filter((t): t is string => t !== null)
+        .join(' ')
+        .trim();
     }
 
-    if (typeof content === 'object' && content !== null) {
-      const obj = content as Record<string, unknown>;
-      if (obj.type === 'text' && typeof obj.text === 'string') return obj.text;
-    }
-
-    return '';
+    return extractTextPart(content) ?? '';
   };
 
   // Watch thread messages for tool results and AI responses
