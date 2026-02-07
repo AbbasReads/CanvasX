@@ -507,7 +507,7 @@ function VariantCard({ variant, componentType, componentConfig, onSelect }: Vari
 
       addElement({
         id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: componentType as any,
+        type: componentType as CanvasElement['type'],
         x: centerX,
         y: centerY,
         width: componentConfig.width,
