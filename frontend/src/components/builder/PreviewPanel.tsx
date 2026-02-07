@@ -43,7 +43,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     const [codeType, setCodeType] = useState<CodeType>('html');
     const [copied, setCopied] = useState(false);
 
-    const copyTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+    const copyTimer = useRef<number | null>(null);
     const previewBlobUrl = useRef<string | null>(null);
 
     useEffect(() => {
