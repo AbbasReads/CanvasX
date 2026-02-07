@@ -444,7 +444,20 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
   const didDrag = useRef(false);
 
   useEffect(() => {
-    didDrag.current = isDragging;
+    if (isDragging) {
+      didDrag.current = true;
+      return;
+    }
+
+    // Ensure the click that sometimes fires immediately after a drag is suppressed,
+    // while still resetting quickly so future clicks aren't swallowed.
+    const resetId = window.setTimeout(() => {
+      didDrag.current = false;
+    }, 0);
+
+    return () => {
+      window.clearTimeout(resetId);
+    };
   }, [isDragging]);
 
   // Handle click - only fire if no drag occurred
