@@ -443,19 +443,46 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
   // Track if drag happened to prevent click after drag
   const didDrag = useRef(false);
 
+  const resetDidDragTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetDidDragTimer.current) {
+        window.clearTimeout(resetDidDragTimer.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (isDragging) {
       didDrag.current = true;
+      if (resetDidDragTimer.current) {
+        window.clearTimeout(resetDidDragTimer.current);
+        resetDidDragTimer.current = null;
+      }
       return;
     }
 
-    didDrag.current = false;
+    if (!didDrag.current) return;
+
+    if (resetDidDragTimer.current) {
+      window.clearTimeout(resetDidDragTimer.current);
+    }
+
+    resetDidDragTimer.current = window.setTimeout(() => {
+      didDrag.current = false;
+      resetDidDragTimer.current = null;
+    }, 0);
   }, [isDragging]);
 
   // Handle click - only fire if no drag occurred
   const handleClick = (e: React.MouseEvent) => {
     if (didDrag.current) {
       didDrag.current = false;
+      if (resetDidDragTimer.current) {
+        window.clearTimeout(resetDidDragTimer.current);
+        resetDidDragTimer.current = null;
+      }
       e.preventDefault();
       e.stopPropagation();
       return;

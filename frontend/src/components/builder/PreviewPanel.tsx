@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
@@ -43,6 +43,21 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     const [codeType, setCodeType] = useState<CodeType>('html');
     const [copied, setCopied] = useState(false);
 
+    const copyTimer = useRef<number | null>(null);
+    const previewBlobUrl = useRef<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (copyTimer.current) {
+                window.clearTimeout(copyTimer.current);
+            }
+
+            if (previewBlobUrl.current) {
+                URL.revokeObjectURL(previewBlobUrl.current);
+            }
+        };
+    }, []);
+
     // Generate the code content from canvas elements
     const generatedHtml = useMemo(() => generateHTML(elements), [elements]);
     const generatedReact = useMemo(() => generateReactTailwind(elements), [elements]);
@@ -77,16 +92,47 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     }, [codeType, generatedHtml, generatedReact]);
 
     const handleCopy = async () => {
-        await navigator.clipboard.writeText(editableCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        try {
+            await navigator.clipboard.writeText(editableCode);
+            setCopied(true);
+            if (copyTimer.current) {
+                window.clearTimeout(copyTimer.current);
+            }
+            copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+            setCopied(false);
+        }
     };
 
     const handleOpenInNewTab = () => {
-        const blob = new Blob([previewHtml], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        try {
+            if (previewBlobUrl.current) {
+                URL.revokeObjectURL(previewBlobUrl.current);
+            }
+
+            const blob = new Blob([previewHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            previewBlobUrl.current = url;
+
+            const newTab = window.open(url, '_blank');
+            if (!newTab) {
+                URL.revokeObjectURL(url);
+                previewBlobUrl.current = null;
+                return;
+            }
+
+            const revoke = () => {
+                URL.revokeObjectURL(url);
+                if (previewBlobUrl.current === url) {
+                    previewBlobUrl.current = null;
+                }
+            };
+
+            newTab.addEventListener('load', revoke, { once: true });
+            window.setTimeout(revoke, 60000);
+        } catch {
+            // noop
+        }
     };
 
     if (!open) return null;
@@ -377,7 +423,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                             height: isFullscreen ? 'calc(100vh - 140px)' : '65vh',
                                             minHeight: '400px'
                                         }}
-                                        sandbox="allow-scripts"
+                                        sandbox=""
                                     />
                                 </motion.div>
                             </div>
