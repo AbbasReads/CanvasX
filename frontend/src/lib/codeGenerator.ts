@@ -2,137 +2,151 @@ import { CanvasElement } from '@/contexts/BuilderContext';
 
 // Generate inline styles from element props
 function generateStyles(element: CanvasElement): string {
-    const styles = element.props?.styles as Record<string, string> || {};
-    const defaultStyles: Record<string, Record<string, string>> = {
-        button: {
-            backgroundColor: '#3b82f6',
-            color: '#ffffff',
-            fontSize: '14px',
-            borderRadius: '8px',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: '500',
-        },
-        text: {
-            color: '#f8fafc',
-            fontSize: '16px',
-            padding: '8px',
-        },
-        navbar: {
-            backgroundColor: '#0f172a',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-        },
-        hero: {
-            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            padding: '32px',
-        },
-        section: {
-            backgroundColor: '#0f172a',
-            padding: '24px',
-            borderRadius: '12px',
-            border: '1px solid rgba(255,255,255,0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        image: {
-            backgroundColor: '#1e293b',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-        },
-        card: {
-            backgroundColor: '#1e293b',
-            borderRadius: '12px',
-            border: '1px solid rgba(255,255,255,0.08)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-        },
-    };
+  const styles = element.props?.styles as Record<string, string> || {};
+  const defaultStyles: Record<string, Record<string, string>> = {
+    button: {
+      backgroundColor: '#3b82f6',
+      color: '#ffffff',
+      fontSize: '14px',
+      borderRadius: '8px',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: '500',
+    },
+    text: {
+      color: '#f8fafc',
+      fontSize: '16px',
+      padding: '8px',
+    },
+    navbar: {
+      backgroundColor: '#0f172a',
+      borderBottom: '1px solid rgba(255,255,255,0.1)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 24px',
+    },
+    hero: {
+      background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      padding: '32px',
+    },
+    section: {
+      backgroundColor: '#0f172a',
+      padding: '24px',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.08)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    image: {
+      backgroundColor: '#1e293b',
+      borderRadius: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    card: {
+      backgroundColor: '#1e293b',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.08)',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+    },
+  };
 
-    const mergedStyles = { ...defaultStyles[element.type] || {}, ...styles };
+  const mergedStyles = { ...defaultStyles[element.type] || {}, ...styles };
 
-    return Object.entries(mergedStyles)
-        .map(([key, value]) => {
-            const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-            return `${cssKey}: ${value}`;
-        })
-        .join('; ');
+  return Object.entries(mergedStyles)
+    .map(([key, value]) => {
+      const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+      return `${cssKey}: ${value}`;
+    })
+    .join('; ');
 }
 
 // Generate HTML content for each element type
 function generateElementHTML(element: CanvasElement, indent: string = ''): string {
-    const styles = generateStyles(element);
-    const positionStyles = `position: absolute; left: ${element.x}px; top: ${element.y}px; width: ${element.width}px; height: ${element.height}px;`;
+  const styles = generateStyles(element);
+  const positionStyles = `position: absolute; left: ${element.x}px; top: ${element.y}px; width: ${element.width}px; height: ${element.height}px;`;
 
-    switch (element.type) {
-        case 'button':
-            return `${indent}<button style="${positionStyles} ${styles}">${element.props?.text || element.label || 'Button'}</button>`;
+  switch (element.type) {
+    case 'button':
+      return `${indent}<button style="${positionStyles} ${styles}">${element.props?.text || element.label || 'Button'}</button>`;
 
-        case 'text':
-            return `${indent}<div style="${positionStyles} ${styles}">${element.props?.text || element.label || 'Text content'}</div>`;
+    case 'text':
+      return `${indent}<div style="${positionStyles} ${styles}">${element.props?.text || element.label || 'Text content'}</div>`;
 
-        case 'navbar':
-            return `${indent}<nav style="${positionStyles} ${styles}">
+    case 'navbar': {
+      const brandName = (element.props?.brandName as string) || 'Acme';
+      const ctaText = (element.props?.ctaText as string) || (element.props?.text as string) || 'Get Started';
+      const accentColor = (element.props?.accentColor as string) || '#3b82f6';
+      const signInText = (element.props?.signInText as string) || 'Sign in';
+      return `${indent}<nav style="${positionStyles} ${styles}">
 ${indent}  <div style="display: flex; align-items: center; gap: 8px;">
-${indent}    <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #3b82f6, #9333ea);"></div>
-${indent}    <span style="font-weight: 600; color: white;">Brand</span>
+${indent}    <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, ${accentColor}, #9333ea);"></div>
+${indent}    <span style="font-weight: 600; color: white;">${brandName}</span>
 ${indent}  </div>
 ${indent}  <div style="display: flex; gap: 24px; font-size: 14px; color: #d1d5db;">
-${indent}    <a href="#" style="color: inherit; text-decoration: none;">Home</a>
-${indent}    <a href="#" style="color: inherit; text-decoration: none;">About</a>
-${indent}    <a href="#" style="color: inherit; text-decoration: none;">Services</a>
-${indent}    <a href="#" style="color: inherit; text-decoration: none;">Contact</a>
+${indent}    <a href="#" style="color: inherit; text-decoration: none;">Products</a>
+${indent}    <a href="#" style="color: inherit; text-decoration: none;">Solutions</a>
+${indent}    <a href="#" style="color: inherit; text-decoration: none;">Pricing</a>
+${indent}    <a href="#" style="color: inherit; text-decoration: none;">Company</a>
 ${indent}  </div>
-${indent}  <button style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">Get Started</button>
+${indent}  <div style="display: flex; align-items: center; gap: 16px;">
+${indent}    <a href="#" style="color: #d1d5db; text-decoration: none; font-size: 14px;">${signInText}</a>
+${indent}    <button style="padding: 8px 16px; background: ${accentColor}; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">${ctaText}</button>
+${indent}  </div>
 ${indent}</nav>`;
+    }
 
-        case 'hero':
-            return `${indent}<section style="${positionStyles} ${styles}">
-${indent}  <h1 style="font-size: 48px; font-weight: 700; color: white; margin-bottom: 16px;">${element.props?.heading || 'Build Something Amazing'}</h1>
-${indent}  <p style="font-size: 18px; color: #d1d5db; margin-bottom: 32px; max-width: 600px;">${element.props?.subheading || 'Create stunning websites with our intuitive drag-and-drop builder.'}</p>
+    case 'hero': {
+      const heading = (element.props?.heading as string) || 'Build products faster than ever';
+      const subheading = (element.props?.subheading as string) || 'The modern platform for building beautiful, responsive websites.';
+      const accentColor = (element.props?.accentColor as string) || '#3b82f6';
+      const textColor = (element.props?.textColor as string) || 'white';
+      const ctaText = (element.props?.ctaText as string) || 'Get Started';
+      return `${indent}<section style="${positionStyles} ${styles}">
+${indent}  <h1 style="font-size: 48px; font-weight: 700; color: ${textColor}; margin-bottom: 16px;">${heading}</h1>
+${indent}  <p style="font-size: 18px; color: #d1d5db; margin-bottom: 32px; max-width: 600px;">${subheading}</p>
 ${indent}  <div style="display: flex; gap: 16px;">
-${indent}    <button style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">Get Started</button>
-${indent}    <button style="padding: 12px 24px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 500; cursor: pointer;">Learn More</button>
+${indent}    <button style="padding: 12px 24px; background: white; color: #0f172a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Start for free</button>
+${indent}    <button style="padding: 12px 24px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 500; cursor: pointer;">View demo →</button>
 ${indent}  </div>
 ${indent}</section>`;
+    }
 
-        case 'section':
-            return `${indent}<section style="${positionStyles} ${styles}">
+    case 'section':
+      return `${indent}<section style="${positionStyles} ${styles}">
 ${indent}  <div style="text-align: center;">
 ${indent}    <h2 style="font-size: 24px; font-weight: 600; color: white; margin-bottom: 8px;">${element.props?.title || 'Section Title'}</h2>
 ${indent}    <p style="color: #9ca3af;">${element.props?.description || 'Add your content here'}</p>
 ${indent}  </div>
 ${indent}</section>`;
 
-        case 'image':
-            const src = element.props?.src as string;
-            if (src) {
-                return `${indent}<img src="${src}" alt="${element.props?.alt || 'Image'}" style="${positionStyles} ${styles} object-fit: cover;" />`;
-            }
-            return `${indent}<div style="${positionStyles} ${styles}">
+    case 'image':
+      const src = element.props?.src as string;
+      if (src) {
+        return `${indent}<img src="${src}" alt="${element.props?.alt || 'Image'}" style="${positionStyles} ${styles} object-fit: cover;" />`;
+      }
+      return `${indent}<div style="${positionStyles} ${styles}">
 ${indent}  <svg width="48" height="48" fill="none" stroke="#6b7280" viewBox="0 0 24 24">
 ${indent}    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
 ${indent}  </svg>
 ${indent}</div>`;
 
-        case 'card':
-            return `${indent}<div style="${positionStyles} ${styles}">
+    case 'card':
+      return `${indent}<div style="${positionStyles} ${styles}">
 ${indent}  <div style="height: 50%; background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(147,51,234,0.2)); display: flex; align-items: center; justify-content: center;">
 ${indent}    <svg width="40" height="40" fill="none" stroke="#6b7280" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
 ${indent}  </div>
@@ -143,18 +157,18 @@ ${indent}    <a href="#" style="margin-top: 12px; font-size: 14px; color: #60a5f
 ${indent}  </div>
 ${indent}</div>`;
 
-        default:
-            return `${indent}<div style="${positionStyles} background: #374151; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">Unknown: ${element.type}</div>`;
-    }
+    default:
+      return `${indent}<div style="${positionStyles} background: #374151; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">Unknown: ${element.type}</div>`;
+  }
 }
 
 // Generate complete HTML page
 export function generateHTML(elements: CanvasElement[]): string {
-    const elementsHTML = elements
-        .map(el => generateElementHTML(el, '    '))
-        .join('\n\n');
+  const elementsHTML = elements
+    .map(el => generateElementHTML(el, '    '))
+    .join('\n\n');
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -188,39 +202,39 @@ ${elementsHTML}
 
 // Generate React component code
 export function generateReactCode(elements: CanvasElement[]): string {
-    const generateReactElement = (element: CanvasElement, indent: string = ''): string => {
-        const styleObj: Record<string, string | number> = {
-            position: 'absolute',
-            left: element.x,
-            top: element.y,
-            width: element.width,
-            height: element.height,
-        };
+  const generateReactElement = (element: CanvasElement, indent: string = ''): string => {
+    const styleObj: Record<string, string | number> = {
+      position: 'absolute',
+      left: element.x,
+      top: element.y,
+      width: element.width,
+      height: element.height,
+    };
 
-        const elementStyles = element.props?.styles as Record<string, string> || {};
-        Object.assign(styleObj, elementStyles);
+    const elementStyles = element.props?.styles as Record<string, string> || {};
+    Object.assign(styleObj, elementStyles);
 
-        const styleString = JSON.stringify(styleObj, null, 2)
-            .split('\n')
-            .map((line, i) => i === 0 ? line : `${indent}      ${line}`)
-            .join('\n');
+    const styleString = JSON.stringify(styleObj, null, 2)
+      .split('\n')
+      .map((line, i) => i === 0 ? line : `${indent}      ${line}`)
+      .join('\n');
 
-        switch (element.type) {
-            case 'button':
-                return `${indent}<button
+    switch (element.type) {
+      case 'button':
+        return `${indent}<button
 ${indent}  style={${styleString}}
 ${indent}  className="hover:opacity-90 transition-opacity"
 ${indent}>
 ${indent}  ${element.props?.text || element.label || 'Button'}
 ${indent}</button>`;
 
-            case 'text':
-                return `${indent}<p style={${styleString}}>
+      case 'text':
+        return `${indent}<p style={${styleString}}>
 ${indent}  ${element.props?.text || element.label || 'Text content'}
 ${indent}</p>`;
 
-            case 'navbar':
-                return `${indent}<nav style={${styleString}}>
+      case 'navbar':
+        return `${indent}<nav style={${styleString}}>
 ${indent}  <div className="flex items-center gap-2">
 ${indent}    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
 ${indent}    <span className="font-semibold text-white">Brand</span>
@@ -236,8 +250,8 @@ ${indent}    Get Started
 ${indent}  </button>
 ${indent}</nav>`;
 
-            case 'hero':
-                return `${indent}<section style={${styleString}}>
+      case 'hero':
+        return `${indent}<section style={${styleString}}>
 ${indent}  <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
 ${indent}    ${element.props?.heading || 'Build Something Amazing'}
 ${indent}  </h1>
@@ -254,8 +268,8 @@ ${indent}    </button>
 ${indent}  </div>
 ${indent}</section>`;
 
-            case 'section':
-                return `${indent}<section style={${styleString}}>
+      case 'section':
+        return `${indent}<section style={${styleString}}>
 ${indent}  <div className="text-center">
 ${indent}    <h2 className="text-2xl font-semibold text-white mb-2">
 ${indent}      ${element.props?.title || 'Section Title'}
@@ -266,17 +280,17 @@ ${indent}    </p>
 ${indent}  </div>
 ${indent}</section>`;
 
-            case 'image':
-                const src = element.props?.src as string;
-                if (src) {
-                    return `${indent}<img src="${src}" alt="${element.props?.alt || 'Image'}" style={${styleString}} className="object-cover" />`;
-                }
-                return `${indent}<div style={${styleString}} className="flex items-center justify-center bg-slate-800 rounded-lg">
+      case 'image':
+        const src = element.props?.src as string;
+        if (src) {
+          return `${indent}<img src="${src}" alt="${element.props?.alt || 'Image'}" style={${styleString}} className="object-cover" />`;
+        }
+        return `${indent}<div style={${styleString}} className="flex items-center justify-center bg-slate-800 rounded-lg">
 ${indent}  <span className="text-gray-500">Image Placeholder</span>
 ${indent}</div>`;
 
-            case 'card':
-                return `${indent}<div style={${styleString}}>
+      case 'card':
+        return `${indent}<div style={${styleString}}>
 ${indent}  <div className="h-1/2 bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center">
 ${indent}    <span className="text-gray-500">Card Image</span>
 ${indent}  </div>
@@ -291,16 +305,16 @@ ${indent}    <a href="#" className="mt-3 text-sm text-blue-400 font-medium">Lear
 ${indent}  </div>
 ${indent}</div>`;
 
-            default:
-                return `${indent}<div style={${styleString}}>Unknown: ${element.type}</div>`;
-        }
-    };
+      default:
+        return `${indent}<div style={${styleString}}>Unknown: ${element.type}</div>`;
+    }
+  };
 
-    const elementsJSX = elements
-        .map(el => generateReactElement(el, '      '))
-        .join('\n\n');
+  const elementsJSX = elements
+    .map(el => generateReactElement(el, '      '))
+    .join('\n\n');
 
-    return `import React from 'react';
+  return `import React from 'react';
 
 export default function MyPage() {
   return (
@@ -314,7 +328,7 @@ ${elementsJSX}
 
 // Generate CSS-only version (for use with the HTML)
 export function generateCSS(elements: CanvasElement[]): string {
-    let css = `/* Generated styles */
+  let css = `/* Generated styles */
 * {
   margin: 0;
   padding: 0;
@@ -335,8 +349,8 @@ body {
 
 `;
 
-    elements.forEach((element, index) => {
-        css += `.element-${index} {
+  elements.forEach((element, index) => {
+    css += `.element-${index} {
   position: absolute;
   left: ${element.x}px;
   top: ${element.y}px;
@@ -345,40 +359,40 @@ body {
 }
 
 `;
-    });
+  });
 
-    return css;
+  return css;
 }
 
 // Generate React component with Tailwind CSS
 export function generateReactTailwind(elements: CanvasElement[]): string {
-    const generateTailwindElement = (element: CanvasElement): string => {
-        const customStyles = element.props?.styles as Record<string, string> || {};
+  const generateTailwindElement = (element: CanvasElement): string => {
+    const customStyles = element.props?.styles as Record<string, string> || {};
 
-        // Build custom style object for non-Tailwind properties
-        const styleEntries: string[] = [];
-        if (customStyles.backgroundColor) styleEntries.push(`backgroundColor: '${customStyles.backgroundColor}'`);
-        if (customStyles.background) styleEntries.push(`background: '${customStyles.background}'`);
-        if (customStyles.color) styleEntries.push(`color: '${customStyles.color}'`);
-        const customStyleStr = styleEntries.length > 0 ? ` style={{ ${styleEntries.join(', ')} }}` : '';
+    // Build custom style object for non-Tailwind properties
+    const styleEntries: string[] = [];
+    if (customStyles.backgroundColor) styleEntries.push(`backgroundColor: '${customStyles.backgroundColor}'`);
+    if (customStyles.background) styleEntries.push(`background: '${customStyles.background}'`);
+    if (customStyles.color) styleEntries.push(`color: '${customStyles.color}'`);
+    const customStyleStr = styleEntries.length > 0 ? ` style={{ ${styleEntries.join(', ')} }}` : '';
 
-        switch (element.type) {
-            case 'button':
-                return `      {/* Button */}
+    switch (element.type) {
+      case 'button':
+        return `      {/* Button */}
       <button
         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"${customStyleStr}
       >
         ${element.props?.text || element.label || 'Button'}
       </button>`;
 
-            case 'text':
-                return `      {/* Text */}
+      case 'text':
+        return `      {/* Text */}
       <p className="text-slate-200 text-base"${customStyleStr}>
         ${element.props?.text || element.label || 'Text content'}
       </p>`;
 
-            case 'navbar':
-                return `      {/* Navbar */}
+      case 'navbar':
+        return `      {/* Navbar */}
       <nav className="w-full flex items-center justify-between px-8 py-4 bg-slate-900 border-b border-slate-800"${customStyleStr}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
@@ -398,8 +412,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </nav>`;
 
-            case 'hero':
-                return `      {/* Hero Section */}
+      case 'hero':
+        return `      {/* Hero Section */}
       <section className="w-full flex flex-col items-center justify-center py-24 px-8 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 text-center relative overflow-hidden"${customStyleStr}>
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         <div className="relative z-10 max-w-3xl">
@@ -423,8 +437,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'section':
-                return `      {/* Section */}
+      case 'section':
+        return `      {/* Section */}
       <section className="w-full py-16 px-8 bg-slate-900 rounded-2xl border border-slate-800"${customStyleStr}>
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold text-white mb-4">
@@ -436,23 +450,23 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'image':
-                const src = element.props?.src as string;
-                if (src) {
-                    return `      {/* Image */}
+      case 'image':
+        const src = element.props?.src as string;
+        if (src) {
+          return `      {/* Image */}
       <img 
         src="${src}" 
         alt="${element.props?.alt || 'Image'}" 
         className="w-full h-full object-cover rounded-lg"
       />`;
-                }
-                return `      {/* Image Placeholder */}
+        }
+        return `      {/* Image Placeholder */}
       <div className="w-full h-64 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-700">
         <span className="text-slate-500 text-sm">Image Placeholder</span>
       </div>`;
 
-            case 'card':
-                return `      {/* Card */}
+      case 'card':
+        return `      {/* Card */}
       <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden"${customStyleStr}>
         <div className="h-40 bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center">
           <span className="text-slate-500">Card Image</span>
@@ -470,8 +484,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </div>`;
 
-            case 'marquee':
-                return `      {/* Logo Cloud / Marquee */}
+      case 'marquee':
+        return `      {/* Logo Cloud / Marquee */}
       <section className="w-full py-12 bg-slate-950">
         <p className="text-center text-xs text-slate-500 uppercase tracking-widest mb-8">
           Trusted by leading companies
@@ -486,8 +500,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'features':
-                return `      {/* Features Section */}
+      case 'features':
+        return `      {/* Features Section */}
       <section className="w-full py-20 px-8 bg-slate-950">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4">Everything you need</h2>
@@ -511,8 +525,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'testimonials':
-                return `      {/* Testimonials Section */}
+      case 'testimonials':
+        return `      {/* Testimonials Section */}
       <section className="w-full py-20 px-8 bg-slate-950">
         <h2 className="text-3xl font-bold text-white text-center mb-12">Loved by thousands</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -535,8 +549,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'pricing':
-                return `      {/* Pricing Section */}
+      case 'pricing':
+        return `      {/* Pricing Section */}
       <section className="w-full py-20 px-8 bg-slate-950">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4">Simple pricing</h2>
@@ -580,8 +594,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'faq':
-                return `      {/* FAQ Section */}
+      case 'faq':
+        return `      {/* FAQ Section */}
       <section className="w-full py-20 px-8 bg-slate-950">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">Frequently asked questions</h2>
@@ -604,8 +618,8 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </section>`;
 
-            case 'footer':
-                return `      {/* Footer */}
+      case 'footer':
+        return `      {/* Footer */}
       <footer className="w-full py-12 px-8 bg-slate-900 border-t border-slate-800">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -646,19 +660,19 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
         </div>
       </footer>`;
 
-            default:
-                return `      {/* Unknown Element: ${element.type} */}
+      default:
+        return `      {/* Unknown Element: ${element.type} */}
       <div className="p-4 bg-slate-800 rounded-lg text-slate-400 text-sm">
         Unknown: ${element.type}
       </div>`;
-        }
-    };
+    }
+  };
 
-    const elementsJSX = elements
-        .map(el => generateTailwindElement(el))
-        .join('\n\n');
+  const elementsJSX = elements
+    .map(el => generateTailwindElement(el))
+    .join('\n\n');
 
-    return `import React from 'react';
+  return `import React from 'react';
 
 /**
  * Generated with CanvasX Builder

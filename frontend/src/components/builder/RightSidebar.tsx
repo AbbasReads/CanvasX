@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PanelRightClose,
@@ -97,6 +97,31 @@ export function RightSidebar() {
     return extractTextPart(content) ?? '';
   };
 
+  // Timeout ref to clear on unmount or when processing completes
+  const processingTimeoutRef = useRef<number | null>(null);
+
+  // Watch generationStage to reset processing state
+  useEffect(() => {
+    if (generationStage === 'IDLE' && isProcessing) {
+      setIsProcessing(false);
+      // Clear timeout if processing completed normally
+      if (processingTimeoutRef.current) {
+        window.clearTimeout(processingTimeoutRef.current);
+        processingTimeoutRef.current = null;
+      }
+    }
+  }, [generationStage, isProcessing]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (processingTimeoutRef.current) {
+        window.clearTimeout(processingTimeoutRef.current);
+        processingTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Watch thread messages for tool results and AI responses
   useEffect(() => {
     if (!thread?.messages || !selectedId) return;
@@ -115,6 +140,13 @@ export function RightSidebar() {
         try {
           const result = JSON.parse(textContent);
           if (result && typeof result === 'object') {
+            // Clear timeout since we got a result
+            if (processingTimeoutRef.current) {
+              window.clearTimeout(processingTimeoutRef.current);
+              processingTimeoutRef.current = null;
+            }
+            setIsProcessing(false);
+
             if (result.success) {
               addLogEntry({
                 id: Date.now().toString() + Math.random(),
@@ -160,12 +192,7 @@ export function RightSidebar() {
     }
 
     setLastMessageCount(messageCount);
-
-    // End processing state when generation is complete
-    if (generationStage === 'IDLE' && isProcessing) {
-      setIsProcessing(false);
-    }
-  }, [thread?.messages, lastMessageCount, selectedId, addLogEntry, generationStage, isProcessing]);
+  }, [thread?.messages, lastMessageCount, selectedId, addLogEntry]);
 
   const handleAiSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,6 +205,20 @@ export function RightSidebar() {
     const userPrompt = aiInput;
     setAiInput('');
     setIsProcessing(true);
+
+    // Set a timeout to reset processing state in case of errors
+    if (processingTimeoutRef.current) {
+      window.clearTimeout(processingTimeoutRef.current);
+    }
+    processingTimeoutRef.current = window.setTimeout(() => {
+      setIsProcessing(false);
+      addLogEntry({
+        id: Date.now().toString(),
+        type: 'error',
+        content: '✗ Request timed out. Please try again.',
+        timestamp: new Date()
+      });
+    }, 30000); // 30 second timeout
 
     // Add user command to this element's chat history
     addLogEntry({ id: Date.now().toString(), type: 'action', content: `> ${userPrompt}`, timestamp: new Date() });
@@ -194,6 +235,11 @@ Use the modify_element tool to make the requested changes to this element.`;
         streamResponse: true,
       });
     } catch (error) {
+      // Clear timeout since we're handling the error
+      if (processingTimeoutRef.current) {
+        window.clearTimeout(processingTimeoutRef.current);
+        processingTimeoutRef.current = null;
+      }
       addLogEntry({
         id: (Date.now() + 2).toString(),
         type: 'error',
