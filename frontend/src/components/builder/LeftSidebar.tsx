@@ -444,12 +444,7 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
   const didDrag = useRef(false);
 
   useEffect(() => {
-    if (isDragging) {
-      didDrag.current = true;
-      return;
-    }
-
-    didDrag.current = false;
+    didDrag.current = isDragging;
   }, [isDragging]);
 
   // Handle click - only fire if no drag occurred

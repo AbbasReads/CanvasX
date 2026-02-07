@@ -43,20 +43,14 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     const [codeType, setCodeType] = useState<CodeType>('html');
     const [copied, setCopied] = useState(false);
 
-    const copyTimer = useRef<number | null>(null);
+    const copyTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
     const previewBlobUrl = useRef<string | null>(null);
-    const openInNewTabTimer = useRef<number | null>(null);
 
     useEffect(() => {
         return () => {
             if (copyTimer.current) {
                 window.clearTimeout(copyTimer.current);
                 copyTimer.current = null;
-            }
-
-            if (openInNewTabTimer.current) {
-                window.clearTimeout(openInNewTabTimer.current);
-                openInNewTabTimer.current = null;
             }
 
             if (previewBlobUrl.current) {
@@ -105,6 +99,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
             setCopied(true);
             if (copyTimer.current) {
                 window.clearTimeout(copyTimer.current);
+                copyTimer.current = null;
             }
             copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
         } catch {
@@ -119,11 +114,6 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                 previewBlobUrl.current = null;
             }
 
-            if (openInNewTabTimer.current) {
-                window.clearTimeout(openInNewTabTimer.current);
-                openInNewTabTimer.current = null;
-            }
-
             const blob = new Blob([previewHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             previewBlobUrl.current = url;
@@ -134,13 +124,6 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                 previewBlobUrl.current = null;
                 return;
             }
-
-            openInNewTabTimer.current = window.setTimeout(() => {
-                if (previewBlobUrl.current !== url) return;
-                URL.revokeObjectURL(url);
-                previewBlobUrl.current = null;
-                openInNewTabTimer.current = null;
-            }, 10000);
         } catch {
             if (previewBlobUrl.current) {
                 URL.revokeObjectURL(previewBlobUrl.current);
@@ -428,7 +411,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                         </div>
                                     </div>
 
-                                    {/* The actual iframe sandbox */}
+                                    {/* The actual iframe sandbox (scripts disabled) */}
                                     <iframe
                                         srcDoc={previewHtml}
                                         title="Preview"
