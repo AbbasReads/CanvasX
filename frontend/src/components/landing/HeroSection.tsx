@@ -35,7 +35,7 @@ export function HeroSection() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto mb-10 leading-relaxed"
         >
-          The spatial canvas that thinks with you. Build production-ready websites 
+          The canvas that thinks with you. Build production-ready websites 
           using natural language and intuitive drag-and-drop.
         </motion.p>
 
@@ -55,13 +55,6 @@ export function HeroSection() {
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </Link>
-          <Button 
-            variant="ghost" 
-            size="lg" 
-            className="h-11 px-6 text-sm text-muted-foreground hover:text-foreground"
-          >
-            Watch Demo
-          </Button>
         </motion.div>
 
         {/* Keyboard hint */}
@@ -98,84 +91,12 @@ export function HeroSection() {
           {/* Glow effect behind the mockup */}
           <div className="absolute -inset-4 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent blur-2xl opacity-60" />
           
-          {/* Browser chrome */}
-          <div className="relative h-10 bg-card/90 border-b border-white/[0.06] flex items-center px-4">
-            <div className="flex gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-            </div>
-            <div className="flex-1 flex justify-center">
-              <div className="px-4 py-1 rounded-md bg-white/[0.03] text-[11px] text-muted-foreground/60 font-mono">
-                spatial.app/builder
-              </div>
-            </div>
-          </div>
-          
-          {/* Dashboard preview */}
-          <div className="relative aspect-[16/9] bg-canvas overflow-hidden">
-            {/* Grid */}
-            <div className="absolute inset-0 canvas-grid-pattern opacity-20" />
-            
-            {/* Left sidebar mockup */}
-            <div className="absolute left-0 top-0 bottom-0 w-56 bg-card/80 border-r border-white/[0.04] backdrop-blur-sm">
-              <div className="p-3 border-b border-white/[0.04]">
-                <div className="h-6 w-20 rounded bg-white/[0.04]" />
-              </div>
-              <div className="p-3 space-y-2">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-10 rounded-lg bg-white/[0.02] border border-white/[0.04]" />
-                ))}
-              </div>
-            </div>
-            
-            {/* Right sidebar mockup */}
-            <div className="absolute right-0 top-0 bottom-0 w-64 bg-card/80 border-l border-white/[0.04] backdrop-blur-sm">
-              <div className="p-3 border-b border-white/[0.04]">
-                <div className="h-6 w-24 rounded bg-white/[0.04]" />
-              </div>
-              <div className="p-3 space-y-3">
-                <div className="space-y-2">
-                  <div className="h-3 w-12 rounded bg-white/[0.04]" />
-                  <div className="h-8 rounded bg-white/[0.02] border border-white/[0.04]" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-3 w-16 rounded bg-white/[0.04]" />
-                  <div className="h-8 rounded bg-white/[0.02] border border-white/[0.04]" />
-                </div>
-              </div>
-              {/* AI Terminal */}
-              <div className="absolute bottom-0 left-0 right-0 h-40 bg-black/40 border-t border-white/[0.06]">
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    <div className="h-3 w-20 rounded bg-primary/20" />
-                  </div>
-                  <div className="h-2 w-full rounded bg-white/[0.02]" />
-                  <div className="h-2 w-3/4 rounded bg-white/[0.02]" />
-                  <div className="h-2 w-5/6 rounded bg-white/[0.02]" />
-                </div>
-              </div>
-            </div>
-            
-            {/* Canvas elements */}
-            <motion.div 
-              className="absolute left-64 top-16 right-72 h-48 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-            />
-            <motion.div 
-              className="absolute left-72 top-72 w-72 h-36 rounded-xl bg-card/90 border border-white/[0.08]"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1, duration: 0.5 }}
-            />
-            <motion.div 
-              className="absolute left-[360px] top-72 w-48 h-36 rounded-xl bg-card/90 border border-white/[0.08]"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.1, duration: 0.5 }}
+          {/* Landing image */}
+          <div className="relative">
+            <img 
+              src="/landing.png" 
+              alt="CanvasX Builder Interface" 
+              className="w-full h-auto"
             />
           </div>
         </motion.div>

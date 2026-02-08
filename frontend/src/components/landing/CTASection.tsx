@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 export function CTASection() {
   return (
-    <section id="pricing" className="relative py-32">
+    <section className="relative py-32">
       <div className="max-w-3xl mx-auto px-6 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -17,10 +17,10 @@ export function CTASection() {
             Start building today
           </h2>
           <p className="text-muted-foreground mb-10 max-w-md mx-auto">
-            Free to start. No credit card required. Scale when you're ready.
+            Jump right in and start creating with CanvasX.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link to="/builder">
               <Button 
                 size="lg" 
@@ -30,14 +30,6 @@ export function CTASection() {
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
               </Button>
             </Link>
-          </div>
-
-          <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground/60">
-            <span>Free tier included</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/20" />
-            <span>No setup required</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/20" />
-            <span>Cancel anytime</span>
           </div>
         </motion.div>
       </div>
