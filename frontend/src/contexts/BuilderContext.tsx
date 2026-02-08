@@ -146,9 +146,20 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }, [elements, pushHistory]);
 
   const updateElement = useCallback((id: string, updates: Partial<CanvasElement>) => {
-    const newElements = elements.map(el =>
-      el.id === id ? { ...el, ...updates } : el
-    );
+    const newElements = elements.map(el => {
+      if (el.id !== id) return el;
+
+      // Deep merge props if both exist
+      const mergedProps = updates.props
+        ? { ...(el.props || {}), ...updates.props }
+        : el.props;
+
+      return {
+        ...el,
+        ...updates,
+        props: mergedProps
+      };
+    });
     setElementsInternal(newElements);
     pushHistory(newElements);
   }, [elements, pushHistory]);

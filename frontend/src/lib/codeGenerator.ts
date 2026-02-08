@@ -3,6 +3,14 @@ import { CanvasElement } from '@/contexts/BuilderContext';
 // Generate inline styles from element props
 function generateStyles(element: CanvasElement): string {
   const styles = element.props?.styles as Record<string, string> || {};
+
+  // Read color props directly from element.props (not just from styles object)
+  const directProps: Record<string, string> = {};
+  if (element.props?.backgroundColor) directProps.backgroundColor = element.props.backgroundColor as string;
+  if (element.props?.textColor) directProps.color = element.props.textColor as string;
+  if (element.props?.background) directProps.background = element.props.background as string;
+  if (element.props?.accentColor) directProps['--accent-color'] = element.props.accentColor as string;
+
   const defaultStyles: Record<string, Record<string, string>> = {
     button: {
       backgroundColor: '#3b82f6',
@@ -65,7 +73,8 @@ function generateStyles(element: CanvasElement): string {
     },
   };
 
-  const mergedStyles = { ...defaultStyles[element.type] || {}, ...styles };
+  // Merge: defaults < nested styles < direct props (highest priority)
+  const mergedStyles = { ...defaultStyles[element.type] || {}, ...styles, ...directProps };
 
   return Object.entries(mergedStyles)
     .map(([key, value]) => {
@@ -370,10 +379,15 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
     const customStyles = element.props?.styles as Record<string, string> || {};
 
     // Build custom style object for non-Tailwind properties
+    // Read from both customStyles and directly from element.props
     const styleEntries: string[] = [];
-    if (customStyles.backgroundColor) styleEntries.push(`backgroundColor: '${customStyles.backgroundColor}'`);
-    if (customStyles.background) styleEntries.push(`background: '${customStyles.background}'`);
-    if (customStyles.color) styleEntries.push(`color: '${customStyles.color}'`);
+    const bgColor = (element.props?.backgroundColor as string) || customStyles.backgroundColor;
+    const background = (element.props?.background as string) || customStyles.background;
+    const textColor = (element.props?.textColor as string) || customStyles.color;
+
+    if (bgColor) styleEntries.push(`backgroundColor: '${bgColor}'`);
+    if (background) styleEntries.push(`background: '${background}'`);
+    if (textColor) styleEntries.push(`color: '${textColor}'`);
     const customStyleStr = styleEntries.length > 0 ? ` style={{ ${styleEntries.join(', ')} }}` : '';
 
     switch (element.type) {

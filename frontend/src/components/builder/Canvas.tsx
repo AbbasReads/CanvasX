@@ -3,10 +3,48 @@ import { motion } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { useBuilder, CanvasElement } from '@/contexts/BuilderContext';
 import { ElementRenderer } from './renderers';
+import { interactableComponentMap, InteractableComponentType } from './interactableComponents';
 import {
   Layout,
   Trash2
 } from 'lucide-react';
+
+// Interactable Element Renderer - Uses withInteractable wrapped components
+interface InteractableElementRendererProps {
+  element: CanvasElement;
+  isEditing?: boolean;
+}
+
+function InteractableElementRenderer({ element, isEditing }: InteractableElementRendererProps) {
+  const { updateElement, activeTheme } = useBuilder();
+
+  // Handle prop updates from Tambo AI
+  const handlePropsUpdate = useCallback((newProps: Record<string, unknown>) => {
+    updateElement(element.id, {
+      props: {
+        ...element.props,
+        ...newProps,
+      }
+    });
+  }, [element.id, element.props, updateElement]);
+
+  // Check if we have an interactable component for this type
+  const InteractableComponent = interactableComponentMap[element.type as InteractableComponentType];
+
+  if (InteractableComponent) {
+    // Use interactable component with full Tambo AI edit support
+    return (
+      <InteractableComponent
+        element={element}
+        onPropsUpdate={handlePropsUpdate}
+        {...(element.props as Record<string, unknown>)}
+      />
+    );
+  }
+
+  // Fallback to original ElementRenderer for unsupported types
+  return <ElementRenderer element={element} isEditing={isEditing} />;
+}
 
 interface CanvasItemProps {
   element: CanvasElement;
@@ -106,9 +144,9 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
       exit={{ opacity: 0, scale: 0.9 }}
       whileHover={previewMode ? undefined : { borderColor: isSelected ? undefined : 'hsl(var(--primary) / 0.5)' }}
     >
-      {/* Element content - Live renderer */}
+      {/* Element content - Live renderer with Tambo AI interactivity */}
       <div className="absolute inset-0 rounded-lg overflow-hidden">
-        <ElementRenderer element={element} isEditing={!previewMode} />
+        <InteractableElementRenderer element={element} isEditing={!previewMode} />
       </div>
 
       {/* Selection overlay - Only in edit mode */}
@@ -173,11 +211,11 @@ export function Canvas() {
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     // Hand tool panning or middle click
     const shouldPan = activeTool === 'hand' || e.button === 1;
-    
+
     if (e.button === 0 && e.target === canvasRef.current) {
       selectElement(null);
     }
-    
+
     if (shouldPan) {
       setIsPanning(true);
       setPanStart({
@@ -267,7 +305,7 @@ export function Canvas() {
           }}
         >
           {/* Desktop Frame */}
-          <div 
+          <div
             className="desktop-frame"
             style={{
               width: 1440,
@@ -291,7 +329,7 @@ export function Canvas() {
               </div>
               <div className="w-16" />
             </div>
-            
+
             {/* Desktop Content Area */}
             <div className="desktop-frame-content">
               {/* Canvas elements */}
