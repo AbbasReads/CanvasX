@@ -309,7 +309,7 @@ export function Canvas() {
             className="desktop-frame"
             style={{
               width: 1440,
-              height: 900,
+              height: 5000,
               position: 'relative',
             }}
           >

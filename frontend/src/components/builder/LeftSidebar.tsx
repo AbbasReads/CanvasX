@@ -618,10 +618,8 @@ export function LeftSidebar() {
 
   if (!leftSidebarOpen) {
     return (
-      <motion.div
+      <div
         className="w-10 glass-panel border-r border-white/[0.06] flex flex-col items-center py-2"
-        initial={{ width: 0, opacity: 0 }}
-        animate={{ width: 40, opacity: 1 }}
       >
         <Button
           variant="ghost"
@@ -631,19 +629,18 @@ export function LeftSidebar() {
         >
           <PanelLeft className="w-4 h-4" />
         </Button>
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <div className="relative flex">
-      <motion.aside
+      <aside
         className="glass-panel border-r border-white/[0.06] flex flex-col overflow-hidden"
-        initial={{ width: 0, opacity: 0 }}
-        animate={{ width: leftSidebarWidth, opacity: 1 }}
-        exit={{ width: 0, opacity: 0 }}
-        transition={{ duration: isResizing ? 0 : 0.2 }}
-        style={{ width: leftSidebarWidth }}
+        style={{
+          width: leftSidebarWidth,
+          transition: isResizing ? 'none' : 'width 0.2s ease',
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.04]">
@@ -798,7 +795,7 @@ export function LeftSidebar() {
             )}
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Resize handle */}
       <div

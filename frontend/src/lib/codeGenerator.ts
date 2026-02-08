@@ -166,6 +166,188 @@ ${indent}    <a href="#" style="margin-top: 12px; font-size: 14px; color: #60a5f
 ${indent}  </div>
 ${indent}</div>`;
 
+    case 'marquee':
+      return `${indent}<div style="${positionStyles} background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; overflow: hidden;">
+${indent}  <p style="font-size: 13px; color: #6b7280; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.1em;">Trusted by leading companies</p>
+${indent}  <div style="display: flex; align-items: center; gap: 48px;">
+${indent}    <div style="display: flex; align-items: center; gap: 8px; opacity: 0.6;"><div style="width: 24px; height: 24px; border-radius: 4px; background: rgba(59,130,246,0.2);"></div><span style="font-size: 16px; font-weight: 600; color: #d1d5db;">Vercel</span></div>
+${indent}    <div style="display: flex; align-items: center; gap: 8px; opacity: 0.6;"><div style="width: 24px; height: 24px; border-radius: 4px; background: rgba(59,130,246,0.2);"></div><span style="font-size: 16px; font-weight: 600; color: #d1d5db;">Stripe</span></div>
+${indent}    <div style="display: flex; align-items: center; gap: 8px; opacity: 0.6;"><div style="width: 24px; height: 24px; border-radius: 4px; background: rgba(59,130,246,0.2);"></div><span style="font-size: 16px; font-weight: 600; color: #d1d5db;">Notion</span></div>
+${indent}    <div style="display: flex; align-items: center; gap: 8px; opacity: 0.6;"><div style="width: 24px; height: 24px; border-radius: 4px; background: rgba(59,130,246,0.2);"></div><span style="font-size: 16px; font-weight: 600; color: #d1d5db;">Linear</span></div>
+${indent}    <div style="display: flex; align-items: center; gap: 8px; opacity: 0.6;"><div style="width: 24px; height: 24px; border-radius: 4px; background: rgba(59,130,246,0.2);"></div><span style="font-size: 16px; font-weight: 600; color: #d1d5db;">Figma</span></div>
+${indent}    <div style="display: flex; align-items: center; gap: 8px; opacity: 0.6;"><div style="width: 24px; height: 24px; border-radius: 4px; background: rgba(59,130,246,0.2);"></div><span style="font-size: 16px; font-weight: 600; color: #d1d5db;">Framer</span></div>
+${indent}  </div>
+${indent}</div>`;
+
+    case 'features':
+      return `${indent}<section style="${positionStyles} background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px;">
+${indent}  <h2 style="font-size: 36px; font-weight: 700; color: white; margin-bottom: 12px; letter-spacing: -0.03em;">Everything you need</h2>
+${indent}  <p style="font-size: 16px; color: #9ca3af; margin-bottom: 40px; max-width: 400px; text-align: center;">Packed with features to help you build faster</p>
+${indent}  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; max-width: 1000px;">
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(59,130,246,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 20px;">⚡</span></div>
+${indent}      <h3 style="font-size: 16px; font-weight: 600; color: white; margin-bottom: 8px;">Lightning Fast</h3>
+${indent}      <p style="font-size: 14px; color: #6b7280;">Built for speed from the ground up</p>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(59,130,246,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 20px;">🔒</span></div>
+${indent}      <h3 style="font-size: 16px; font-weight: 600; color: white; margin-bottom: 8px;">Secure by Default</h3>
+${indent}      <p style="font-size: 14px; color: #6b7280;">Enterprise-grade security included</p>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(59,130,246,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 20px;">📱</span></div>
+${indent}      <h3 style="font-size: 16px; font-weight: 600; color: white; margin-bottom: 8px;">Fully Responsive</h3>
+${indent}      <p style="font-size: 14px; color: #6b7280;">Looks great on any device</p>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(59,130,246,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 20px;">🎨</span></div>
+${indent}      <h3 style="font-size: 16px; font-weight: 600; color: white; margin-bottom: 8px;">Customizable</h3>
+${indent}      <p style="font-size: 14px; color: #6b7280;">Make it truly yours</p>
+${indent}    </div>
+${indent}  </div>
+${indent}</section>`;
+
+    case 'testimonials':
+      return `${indent}<section style="${positionStyles} background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px;">
+${indent}  <h2 style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 40px;">Loved by thousands</h2>
+${indent}  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1000px;">
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <p style="font-size: 15px; color: white; margin-bottom: 16px; line-height: 1.6;">"This product has completely transformed how we build."</p>
+${indent}      <div style="display: flex; align-items: center; gap: 12px;">
+${indent}        <div style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6;"></div>
+${indent}        <div>
+${indent}          <p style="font-size: 14px; font-weight: 600; color: white;">Sarah Chen</p>
+${indent}          <p style="font-size: 13px; color: #6b7280;">CEO at TechCorp</p>
+${indent}        </div>
+${indent}      </div>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <p style="font-size: 15px; color: white; margin-bottom: 16px; line-height: 1.6;">"The best tool I have ever used. Highly recommended."</p>
+${indent}      <div style="display: flex; align-items: center; gap: 12px;">
+${indent}        <div style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6;"></div>
+${indent}        <div>
+${indent}          <p style="font-size: 14px; font-weight: 600; color: white;">Marcus Johnson</p>
+${indent}          <p style="font-size: 13px; color: #6b7280;">Designer at Studio</p>
+${indent}        </div>
+${indent}      </div>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px;">
+${indent}      <p style="font-size: 15px; color: white; margin-bottom: 16px; line-height: 1.6;">"Incredible speed and flexibility. Love it!"</p>
+${indent}      <div style="display: flex; align-items: center; gap: 12px;">
+${indent}        <div style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6;"></div>
+${indent}        <div>
+${indent}          <p style="font-size: 14px; font-weight: 600; color: white;">Emily Davis</p>
+${indent}          <p style="font-size: 13px; color: #6b7280;">Developer</p>
+${indent}        </div>
+${indent}      </div>
+${indent}    </div>
+${indent}  </div>
+${indent}</section>`;
+
+    case 'pricing':
+      return `${indent}<section style="${positionStyles} background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px;">
+${indent}  <h2 style="font-size: 36px; font-weight: 700; color: white; margin-bottom: 12px;">Simple pricing</h2>
+${indent}  <p style="font-size: 16px; color: #9ca3af; margin-bottom: 40px;">Choose the plan that's right for you</p>
+${indent}  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1000px;">
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px; position: relative;">
+${indent}      <h3 style="font-size: 18px; font-weight: 600; color: white; margin-bottom: 8px;">Starter</h3>
+${indent}      <p style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 16px;">$9<span style="font-size: 14px; font-weight: 400; color: #6b7280;">/mo</span></p>
+${indent}      <ul style="list-style: none; padding: 0; margin: 0 0 24px 0;">
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ 5 projects</li>
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Basic analytics</li>
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Email support</li>
+${indent}      </ul>
+${indent}      <button style="width: 100%; padding: 10px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer;">Get started</button>
+${indent}    </div>
+${indent}    <div style="background: rgba(59,130,246,0.1); border: 1px solid #3b82f6; border-radius: 12px; padding: 24px; position: relative;">
+${indent}      <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: #3b82f6; color: white; font-size: 12px; font-weight: 500; border-radius: 12px;">Popular</span>
+${indent}      <h3 style="font-size: 18px; font-weight: 600; color: white; margin-bottom: 8px;">Pro</h3>
+${indent}      <p style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 16px;">$29<span style="font-size: 14px; font-weight: 400; color: #6b7280;">/mo</span></p>
+${indent}      <ul style="list-style: none; padding: 0; margin: 0 0 24px 0;">
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Unlimited projects</li>
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Advanced analytics</li>
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Priority support</li>
+${indent}      </ul>
+${indent}      <button style="width: 100%; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer;">Get started</button>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px; position: relative;">
+${indent}      <h3 style="font-size: 18px; font-weight: 600; color: white; margin-bottom: 8px;">Enterprise</h3>
+${indent}      <p style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 16px;">Custom<span style="font-size: 14px; font-weight: 400; color: #6b7280;">/mo</span></p>
+${indent}      <ul style="list-style: none; padding: 0; margin: 0 0 24px 0;">
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Custom solutions</li>
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ Dedicated support</li>
+${indent}        <li style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">✓ SLA guarantee</li>
+${indent}      </ul>
+${indent}      <button style="width: 100%; padding: 10px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer;">Get started</button>
+${indent}    </div>
+${indent}  </div>
+${indent}</section>`;
+
+    case 'faq':
+      return `${indent}<section style="${positionStyles} background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px;">
+${indent}  <h2 style="font-size: 32px; font-weight: 700; color: white; margin-bottom: 12px;">Frequently asked questions</h2>
+${indent}  <p style="font-size: 16px; color: #9ca3af; margin-bottom: 40px;">Everything you need to know</p>
+${indent}  <div style="width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 12px;">
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px;">
+${indent}      <div style="display: flex; align-items: center; justify-content: space-between;">
+${indent}        <h3 style="font-size: 15px; font-weight: 600; color: white;">How does the free trial work?</h3>
+${indent}        <span style="color: #6b7280;">+</span>
+${indent}      </div>
+${indent}      <p style="font-size: 14px; color: #9ca3af; margin-top: 12px;">You get 14 days of full access with no credit card required.</p>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px;">
+${indent}      <div style="display: flex; align-items: center; justify-content: space-between;">
+${indent}        <h3 style="font-size: 15px; font-weight: 600; color: white;">Can I cancel anytime?</h3>
+${indent}        <span style="color: #6b7280;">+</span>
+${indent}      </div>
+${indent}      <p style="font-size: 14px; color: #9ca3af; margin-top: 12px;">Yes, you can cancel your subscription at any time.</p>
+${indent}    </div>
+${indent}    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px;">
+${indent}      <div style="display: flex; align-items: center; justify-content: space-between;">
+${indent}        <h3 style="font-size: 15px; font-weight: 600; color: white;">Do you offer refunds?</h3>
+${indent}        <span style="color: #6b7280;">+</span>
+${indent}      </div>
+${indent}      <p style="font-size: 14px; color: #9ca3af; margin-top: 12px;">We offer a 30-day money back guarantee.</p>
+${indent}    </div>
+${indent}  </div>
+${indent}</section>`;
+
+    case 'footer':
+      return `${indent}<footer style="${positionStyles} background: #1e293b; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; padding: 32px 48px;">
+${indent}  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; width: 100%;">
+${indent}    <div>
+${indent}      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+${indent}        <div style="width: 24px; height: 24px; border-radius: 4px; background: #3b82f6;"></div>
+${indent}        <span style="font-weight: 600; color: white;">Acme</span>
+${indent}      </div>
+${indent}      <p style="font-size: 13px; color: #6b7280;">Build better, faster.</p>
+${indent}    </div>
+${indent}    <div>
+${indent}      <h4 style="font-size: 13px; font-weight: 600; color: white; margin-bottom: 12px;">Product</h4>
+${indent}      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Features</li>
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Pricing</li>
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Changelog</li>
+${indent}      </ul>
+${indent}    </div>
+${indent}    <div>
+${indent}      <h4 style="font-size: 13px; font-weight: 600; color: white; margin-bottom: 12px;">Company</h4>
+${indent}      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+${indent}        <li style="font-size: 13px; color: #9ca3af;">About</li>
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Blog</li>
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Careers</li>
+${indent}      </ul>
+${indent}    </div>
+${indent}    <div>
+${indent}      <h4 style="font-size: 13px; font-weight: 600; color: white; margin-bottom: 12px;">Legal</h4>
+${indent}      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Privacy</li>
+${indent}        <li style="font-size: 13px; color: #9ca3af;">Terms</li>
+${indent}      </ul>
+${indent}    </div>
+${indent}  </div>
+${indent}</footer>`;
+
     default:
       return `${indent}<div style="${positionStyles} background: #374151; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">Unknown: ${element.type}</div>`;
   }
