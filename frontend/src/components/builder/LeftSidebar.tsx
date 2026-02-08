@@ -442,6 +442,7 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
 
   // Track if drag happened to prevent click after drag
   const didDrag = useRef(false);
+  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (isDragging) {
@@ -453,7 +454,8 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
     // while still resetting quickly so future clicks aren't swallowed.
     const resetId = window.setTimeout(() => {
       didDrag.current = false;
-    }, 0);
+      dragStartPos.current = null;
+    }, 100);
 
     return () => {
       window.clearTimeout(resetId);
@@ -462,8 +464,23 @@ function DraggableComponentCard({ type, icon: Icon, label, width, height, onClic
 
   // Handle click - only fire if no drag occurred
   const handleClick = (e: React.MouseEvent) => {
+    // Track mouse down position to detect if it's a drag or a click
+    const handleMouseDown = (downEvent: React.MouseEvent) => {
+      dragStartPos.current = { x: downEvent.clientX, y: downEvent.clientY };
+    };
+
+    // Check if mouse moved significantly (more than 5px)
+    if (dragStartPos.current) {
+      const deltaX = Math.abs(e.clientX - dragStartPos.current.x);
+      const deltaY = Math.abs(e.clientY - dragStartPos.current.y);
+      if (deltaX > 5 || deltaY > 5) {
+        didDrag.current = true;
+      }
+    }
+
     if (didDrag.current) {
       didDrag.current = false;
+      dragStartPos.current = null;
       e.preventDefault();
       e.stopPropagation();
       return;

@@ -19,6 +19,7 @@ import { useBuilder } from '@/contexts/BuilderContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { generateHTML, generateReactTailwind } from '@/lib/codeGenerator';
+import { ElementRenderer } from './renderers';
 
 interface PreviewPanelProps {
     open: boolean;
@@ -480,17 +481,30 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                         </div>
                                     </div>
 
-                                    {/* The actual iframe sandbox (scripts disabled) */}
-                                    <iframe
-                                        srcDoc={previewHtml}
-                                        title="Preview"
-                                        className="w-full border-0"
+                                    {/* Direct React preview - renders actual canvas elements */}
+                                    <div 
+                                        className="w-full bg-[#0f172a] relative overflow-auto"
                                         style={{
                                             height: isFullscreen ? 'calc(100vh - 140px)' : '65vh',
                                             minHeight: '400px'
                                         }}
-                                        sandbox=""
-                                    />
+                                    >
+                                        {/* Render all canvas elements in their positions */}
+                                        {elements.map((element) => (
+                                            <div
+                                                key={element.id}
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: element.x,
+                                                    top: element.y,
+                                                    width: element.width,
+                                                    height: element.height,
+                                                }}
+                                            >
+                                                <ElementRenderer element={element} isEditing={false} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </motion.div>
                             </div>
                         )}

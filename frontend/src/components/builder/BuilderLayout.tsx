@@ -51,18 +51,15 @@ function BuilderContent() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { over, delta } = event;
 
-    console.log('DragEnd:', { over, activeDragData, delta });
-
-    // Always try to add element if we have drag data
-    if (activeDragData) {
+    // Only add element if there was actual drag movement (more than 10px)
+    const dragDistance = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+    
+    if (activeDragData && dragDistance > 10) {
       const canvasRect = document.querySelector('[data-canvas]')?.getBoundingClientRect();
-      console.log('Canvas rect:', canvasRect);
 
       if (canvasRect) {
         const mouseX = (event.activatorEvent as MouseEvent).clientX + delta.x;
         const mouseY = (event.activatorEvent as MouseEvent).clientY + delta.y;
-
-        console.log('Mouse position:', { mouseX, mouseY });
 
         // Check if drop position is within or near the canvas area
         const isInCanvas =
@@ -71,14 +68,10 @@ function BuilderContent() {
           mouseY >= canvasRect.top &&
           mouseY <= canvasRect.bottom;
 
-        console.log('isInCanvas:', isInCanvas, 'over:', over?.id);
-
         if (isInCanvas || over?.id === 'canvas') {
           // Calculate drop position relative to canvas
           const x = Math.max(0, Math.round((mouseX - canvasRect.left - pan.x) / 20) * 20);
           const y = Math.max(0, Math.round((mouseY - canvasRect.top - pan.y) / 20) * 20);
-
-          console.log('Adding element at:', { x, y });
 
           const newElement: CanvasElement = {
             id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -91,7 +84,6 @@ function BuilderContent() {
           };
 
           addElement(newElement);
-          console.log('Element added:', newElement);
         }
       }
     }

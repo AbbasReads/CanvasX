@@ -3,13 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   PanelRightClose,
   PanelRight,
-  Palette,
-  Type,
-  Move,
   Box,
   Send,
   Sparkles,
-  ChevronDown,
   X,
   Loader2
 } from 'lucide-react';
@@ -17,10 +13,8 @@ import { useBuilder } from '@/contexts/BuilderContext';
 import { useTamboThread } from '@tambo-ai/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AILogEntry {
   id: string;
@@ -345,133 +339,52 @@ Use the modify_element tool to make the requested changes to this element.`;
 
                   <Separator className="bg-white/[0.04]" />
 
-                  {/* Tabs for different property sections */}
-                  <Tabs defaultValue="layout" className="w-full">
-                    <TabsList className="w-full h-8 bg-secondary/50 p-0.5">
-                      <TabsTrigger value="layout" className="flex-1 h-7 text-xs">
-                        <Move className="w-3 h-3 mr-1" />
-                        Layout
-                      </TabsTrigger>
-                      <TabsTrigger value="style" className="flex-1 h-7 text-xs">
-                        <Palette className="w-3 h-3 mr-1" />
-                        Style
-                      </TabsTrigger>
-                      <TabsTrigger value="text" className="flex-1 h-7 text-xs">
-                        <Type className="w-3 h-3 mr-1" />
-                        Text
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="layout" className="mt-3 space-y-3">
-                      {/* Position */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <Label className="property-label">X</Label>
-                          <Input
-                            type="number"
-                            value={Math.round(selectedElement.x)}
-                            onChange={(e) => updateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })}
-                            className="property-input"
-                          />
-                        </div>
-                        <div>
-                          <Label className="property-label">Y</Label>
-                          <Input
-                            type="number"
-                            value={Math.round(selectedElement.y)}
-                            onChange={(e) => updateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })}
-                            className="property-input"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Size */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <Label className="property-label">Width</Label>
-                          <Input
-                            type="number"
-                            value={Math.round(selectedElement.width)}
-                            onChange={(e) => updateElement(selectedElement.id, { width: parseInt(e.target.value) || 100 })}
-                            className="property-input"
-                          />
-                        </div>
-                        <div>
-                          <Label className="property-label">Height</Label>
-                          <Input
-                            type="number"
-                            value={Math.round(selectedElement.height)}
-                            onChange={(e) => updateElement(selectedElement.id, { height: parseInt(e.target.value) || 100 })}
-                            className="property-input"
-                          />
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="style" className="mt-3 space-y-3">
+                  {/* Layout Properties */}
+                  <div className="space-y-3">
+                    {/* Position */}
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="property-label">Opacity</Label>
-                        <Slider
-                          defaultValue={[100]}
-                          max={100}
-                          step={1}
-                          className="mt-2"
-                        />
-                      </div>
-                      <div>
-                        <Label className="property-label">Background</Label>
-                        <div className="flex gap-2 mt-1.5">
-                          <div className="w-7 h-7 rounded bg-primary cursor-pointer hover:ring-2 ring-white/20 transition-all" />
-                          <div className="w-7 h-7 rounded bg-secondary cursor-pointer hover:ring-2 ring-white/20 transition-all" />
-                          <div className="w-7 h-7 rounded bg-muted cursor-pointer hover:ring-2 ring-white/20 transition-all" />
-                          <div className="w-7 h-7 rounded bg-white cursor-pointer hover:ring-2 ring-white/20 transition-all" />
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="property-label">Border Radius</Label>
-                        <Slider
-                          defaultValue={[8]}
-                          max={32}
-                          step={1}
-                          className="mt-2"
-                        />
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="text" className="mt-3 space-y-3">
-                      <div>
-                        <Label className="property-label">Content</Label>
+                        <Label className="property-label">X</Label>
                         <Input
-                          value={selectedElement.label}
-                          onChange={(e) => updateElement(selectedElement.id, { label: e.target.value })}
-                          className="property-input mt-1"
+                          type="number"
+                          value={Math.round(selectedElement.x)}
+                          onChange={(e) => updateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })}
+                          className="property-input"
                         />
                       </div>
                       <div>
-                        <Label className="property-label">Font Size</Label>
-                        <Slider
-                          defaultValue={[16]}
-                          min={10}
-                          max={72}
-                          step={1}
-                          className="mt-2"
+                        <Label className="property-label">Y</Label>
+                        <Input
+                          type="number"
+                          value={Math.round(selectedElement.y)}
+                          onChange={(e) => updateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })}
+                          className="property-input"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Size */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="property-label">Width</Label>
+                        <Input
+                          type="number"
+                          value={Math.round(selectedElement.width)}
+                          onChange={(e) => updateElement(selectedElement.id, { width: parseInt(e.target.value) || 100 })}
+                          className="property-input"
                         />
                       </div>
                       <div>
-                        <Label className="property-label">Font Weight</Label>
-                        <div className="flex gap-1 mt-1.5">
-                          {['Light', 'Regular', 'Medium', 'Bold'].map((weight) => (
-                            <button
-                              key={weight}
-                              className="flex-1 py-1 text-[10px] rounded bg-secondary/50 hover:bg-secondary transition-colors"
-                            >
-                              {weight}
-                            </button>
-                          ))}
-                        </div>
+                        <Label className="property-label">Height</Label>
+                        <Input
+                          type="number"
+                          value={Math.round(selectedElement.height)}
+                          onChange={(e) => updateElement(selectedElement.id, { height: parseInt(e.target.value) || 100 })}
+                          className="property-input"
+                        />
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                    </div>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div
