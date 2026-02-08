@@ -3,47 +3,20 @@ import { motion } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { useBuilder, CanvasElement } from '@/contexts/BuilderContext';
 import { ElementRenderer } from './renderers';
-import { interactableComponentMap, InteractableComponentType } from './interactableComponents';
 import {
   Layout,
   Trash2,
   Upload
 } from 'lucide-react';
 
-// Interactable Element Renderer - Uses withInteractable wrapped components
-interface InteractableElementRendererProps {
+// Element Renderer - Directly uses ElementRenderer for consistent rendering
+interface CanvasElementRendererProps {
   element: CanvasElement;
   isEditing?: boolean;
 }
 
-function InteractableElementRenderer({ element, isEditing }: InteractableElementRendererProps) {
-  const { updateElement, activeTheme } = useBuilder();
-
-  // Handle prop updates from Tambo AI
-  const handlePropsUpdate = useCallback((newProps: Record<string, unknown>) => {
-    updateElement(element.id, {
-      props: {
-        ...element.props,
-        ...newProps,
-      }
-    });
-  }, [element.id, element.props, updateElement]);
-
-  // Check if we have an interactable component for this type
-  const InteractableComponent = interactableComponentMap[element.type as InteractableComponentType];
-
-  if (InteractableComponent) {
-    // Use interactable component with full Tambo AI edit support
-    return (
-      <InteractableComponent
-        element={element}
-        onPropsUpdate={handlePropsUpdate}
-        {...(element.props as Record<string, unknown>)}
-      />
-    );
-  }
-
-  // Fallback to original ElementRenderer for unsupported types
+function CanvasElementRenderer({ element, isEditing }: CanvasElementRendererProps) {
+  // Simply use ElementRenderer for all components - same as preview
   return <ElementRenderer element={element} isEditing={isEditing} />;
 }
 
@@ -258,7 +231,7 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
     >
       {/* Element content - Live renderer with Tambo AI interactivity */}
       <div className="absolute inset-0 rounded-lg overflow-hidden" style={{ opacity: isEditingText ? 0.3 : 1 }}>
-        <InteractableElementRenderer element={element} isEditing={!previewMode} />
+        <CanvasElementRenderer element={element} isEditing={!previewMode} />
       </div>
 
       {/* Inline text editor overlay */}
@@ -287,8 +260,8 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
         <>
           {/* Action buttons - Positioned above */}
           <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
-            {/* Upload Image button - Only for image elements */}
-            {element.type === 'image' && (
+            {/* Upload Image button - For image elements and hero split variant */}
+            {(element.type === 'image' || (element.type === 'hero' && element.props?.style === 'split')) && (
               <motion.button
                 className="h-6 px-2 rounded-md flex items-center gap-1 text-xs font-medium"
                 style={{
@@ -347,7 +320,7 @@ function CanvasItem({ element, isSelected, onSelect, zoom }: CanvasItemProps) {
       )}
 
       {/* Image upload dialog */}
-      {showImageDialog && element.type === 'image' && (
+      {showImageDialog && (element.type === 'image' || element.type === 'hero') && (
         <div 
           className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 rounded-lg"
           onClick={(e) => {

@@ -39,6 +39,8 @@ export function RightSidebar() {
   const [chatHistoryByElement, setChatHistoryByElement] = useState<Record<string, AILogEntry[]>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [propertiesHeight, setPropertiesHeight] = useState(300);
+  const [isResizingProperties, setIsResizingProperties] = useState(false);
 
   const selectedElement = elements.find(el => el.id === selectedId);
 
@@ -299,7 +301,31 @@ Use the modify_element tool to make the requested changes to this element.`;
         style={{ width: rightSidebarWidth }}
       >
         {/* Property Inspector - Top Half */}
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <div className="overflow-hidden flex flex-col" style={{ height: propertiesHeight, minHeight: 200 }}>
+          {/* Resize handle for properties */}
+          <div
+            className="h-1 cursor-row-resize hover:bg-primary/50 transition-colors absolute left-0 right-0 top-0 z-10"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizingProperties(true);
+              const startY = e.clientY;
+              const startHeight = propertiesHeight;
+
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                const newHeight = Math.max(200, Math.min(600, startHeight + (moveEvent.clientY - startY)));
+                setPropertiesHeight(newHeight);
+              };
+
+              const handleMouseUp = () => {
+                setIsResizingProperties(false);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
+            }}
+          />
           {/* Header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.04]">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -404,7 +430,7 @@ Use the modify_element tool to make the requested changes to this element.`;
         <Separator className="bg-white/[0.04]" />
 
         {/* AI Chat - Per Element */}
-        <div className="h-64 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-[200px]">
           {/* Chat Header - Shows which element we're editing */}
           <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.04]">
             <Sparkles className="w-3.5 h-3.5 text-primary" />

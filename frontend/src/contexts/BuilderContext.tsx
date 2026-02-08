@@ -1,5 +1,6 @@
 import { useState, createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
 import { setBuilderStore, resetBuilderStore } from '@/lib/builderStore';
+import { saveProject, getProject, getCurrentProjectId, clearCurrentProject, type Project } from '@/lib/projectStorage';
 
 // Types for canvas elements
 export interface CanvasElement {
@@ -91,6 +92,12 @@ interface BuilderContextType {
   setLeftSidebarWidth: (width: number) => void;
   rightSidebarWidth: number;
   setRightSidebarWidth: (width: number) => void;
+
+  // Project management
+  projectName: string;
+  setProjectName: (name: string) => void;
+  projectId: string | null;
+  saveCurrentProject: () => void;
 }
 
 const BuilderContext = createContext<BuilderContextType | null>(null);
@@ -123,7 +130,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // Sidebar widths
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(224);
   const [rightSidebarWidth, setRightSidebarWidth] = useState(280);
-
+  // Project management
+  const [projectName, setProjectName] = useState('Untitled Project');
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
   // History and element management callbacks
 
   const pushHistory = useCallback((newElements: CanvasElement[]) => {
@@ -237,6 +247,62 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     });
   }, [updateElement, selectedId, selectedElement, elements]);
 
+  // Load project on mount
+  useEffect(() => {
+    const currentProjectId = getCurrentProjectId();
+    if (currentProjectId && currentProjectId !== 'new') {
+      const project = getProject(currentProjectId);
+      if (project) {
+        setElementsInternal(project.elements);
+        setProjectName(project.name);
+        setProjectId(project.id);
+        setHistory([{ elements: project.elements, timestamp: Date.now() }]);
+        setHistoryIndex(0);
+      } else {
+        clearCurrentProject();
+      }
+    } else if (currentProjectId === 'new') {
+      // Start with empty canvas for new project
+      setElementsInternal([]);
+      setProjectName('Untitled Project');
+      setProjectId(null);
+    }
+  }, []);
+
+  // Auto-save project (debounced)
+  useEffect(() => {
+    const saveTimer = setTimeout(() => {
+      if (elements.length > 0 || projectId) {
+        const project = saveProject({
+          id: projectId || undefined,
+          name: projectName,
+          elements,
+        });
+        
+        if (!projectId) {
+          setProjectId(project.id);
+        }
+        setLastSaveTime(Date.now());
+      }
+    }, 2000); // Auto-save 2 seconds after last change
+
+    return () => clearTimeout(saveTimer);
+  }, [elements, projectName, projectId]);
+
+  // Manual save function
+  const saveCurrentProject = useCallback(() => {
+    const project = saveProject({
+      id: projectId || undefined,
+      name: projectName,
+      elements,
+    });
+    
+    if (!projectId) {
+      setProjectId(project.id);
+    }
+    setLastSaveTime(Date.now());
+  }, [elements, projectName, projectId]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => resetBuilderStore();
@@ -280,6 +346,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     setLeftSidebarWidth,
     rightSidebarWidth,
     setRightSidebarWidth,
+    projectName,
+    setProjectName,
+    projectId,
+    saveCurrentProject,
   };
 
   return (

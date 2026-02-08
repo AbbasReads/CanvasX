@@ -3,15 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
     Monitor,
-    Tablet,
-    Smartphone,
-    RefreshCw,
     ExternalLink,
     Maximize2,
     Minimize2,
     Code,
     Eye,
-    Copy,
+    Download,
     Check,
     RotateCcw
 } from 'lucide-react';
@@ -26,33 +23,26 @@ interface PreviewPanelProps {
     onOpenChange: (open: boolean) => void;
 }
 
-type ViewportSize = 'desktop' | 'tablet' | 'mobile';
 type ViewMode = 'preview' | 'code' | 'split';
-type CodeType = 'html' | 'react';
 
-const viewportSizes: Record<ViewportSize, { width: number; label: string }> = {
-    desktop: { width: 1280, label: 'Desktop' },
-    tablet: { width: 768, label: 'Tablet' },
-    mobile: { width: 375, label: 'Mobile' },
-};
+const desktopWidth = 1280;
 
 export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
-    const { elements } = useBuilder();
-    const [viewport, setViewport] = useState<ViewportSize>('desktop');
+    const { elements, setElements } = useBuilder();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>('split');
-    const [codeType, setCodeType] = useState<CodeType>('html');
-    const [copied, setCopied] = useState(false);
+    const [exported, setExported] = useState(false);
+    const [showSyncWarning, setShowSyncWarning] = useState(false);
 
-    const copyTimer = useRef<number | null>(null);
+    const exportTimer = useRef<number | null>(null);
     const previewBlobUrl = useRef<string | null>(null);
     const openInNewTabTimer = useRef<number | null>(null);
 
     useEffect(() => {
         return () => {
-            if (copyTimer.current) {
-                window.clearTimeout(copyTimer.current);
-                copyTimer.current = null;
+            if (exportTimer.current) {
+                window.clearTimeout(exportTimer.current);
+                exportTimer.current = null;
             }
 
             if (previewBlobUrl.current) {
@@ -68,31 +58,10 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     }, []);
 
     // Generate the code content from canvas elements
-    const generatedHtml = useMemo(() => generateHTML(elements), [elements]);
     const generatedReact = useMemo(() => generateReactTailwind(elements), [elements]);
 
-    const [editableHtml, setEditableHtml] = useState(generatedHtml);
     const [editableReact, setEditableReact] = useState(generatedReact);
-
-    const [isHtmlDirty, setIsHtmlDirty] = useState(false);
     const [isReactDirty, setIsReactDirty] = useState(false);
-
-    const editableCode = codeType === 'html' ? editableHtml : editableReact;
-
-    // The code that renders in the preview (custom HTML for preview, or generated)
-    const previewHtml = useMemo(() => {
-        if (codeType === 'html') {
-            return editableHtml;
-        }
-        // For React, we can't execute it directly, show the HTML preview instead
-        return generatedHtml;
-    }, [codeType, editableHtml, generatedHtml]);
-
-    useEffect(() => {
-        if (!isHtmlDirty) {
-            setEditableHtml(generatedHtml);
-        }
-    }, [generatedHtml, isHtmlDirty]);
 
     useEffect(() => {
         if (!isReactDirty) {
@@ -101,26 +70,35 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
     }, [generatedReact, isReactDirty]);
 
     const handleResetCode = useCallback(() => {
-        if (codeType === 'html') {
-            setEditableHtml(generatedHtml);
-            setIsHtmlDirty(false);
-        } else {
-            setEditableReact(generatedReact);
-            setIsReactDirty(false);
-        }
-    }, [codeType, generatedHtml, generatedReact]);
+        setEditableReact(generatedReact);
+        setIsReactDirty(false);
+        setShowSyncWarning(false);
+    }, [generatedReact]);
 
-    const handleCopy = async () => {
+    const handleExport = () => {
         try {
-            await navigator.clipboard.writeText(editableCode);
-            setCopied(true);
-            if (copyTimer.current) {
-                window.clearTimeout(copyTimer.current);
-                copyTimer.current = null;
+            // Create a blob with the code content
+            const blob = new Blob([editableReact], { type: 'text/typescript' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create a temporary download link
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'GeneratedPage.tsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show success state
+            setExported(true);
+            if (exportTimer.current) {
+                window.clearTimeout(exportTimer.current);
+                exportTimer.current = null;
             }
-            copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
+            exportTimer.current = window.setTimeout(() => setExported(false), 2000);
         } catch {
-            setCopied(false);
+            setExported(false);
         }
     };
 
@@ -136,40 +114,10 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                 openInNewTabTimer.current = null;
             }
 
-            const bytes = new TextEncoder().encode(previewHtml);
-            let binary = '';
-            for (const byte of bytes) {
-                binary += String.fromCharCode(byte);
-            }
-            const base64 = btoa(binary);
+            // Generate HTML from canvas elements
+            const htmlContent = generateHTML(elements);
 
-            const wrapperHtml = `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Preview</title>
-    <style>
-      html, body { height: 100%; margin: 0; }
-      iframe { width: 100%; height: 100%; border: 0; }
-    </style>
-  </head>
-  <body>
-    <iframe id="preview" sandbox=""></iframe>
-    <script>
-      (function () {
-        var base64 = ${JSON.stringify(base64)};
-        var binary = atob(base64);
-        var bytes = new Uint8Array(binary.length);
-        for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        var html = new TextDecoder().decode(bytes);
-        document.getElementById('preview').srcdoc = html;
-      })();
-    </script>
-  </body>
-</html>`;
-
-            const blob = new Blob([wrapperHtml], { type: 'text/html' });
+            const blob = new Blob([htmlContent], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             previewBlobUrl.current = url;
 
@@ -230,7 +178,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                 <div>
                                     <h2 className="text-sm font-semibold text-foreground">Live Preview & Code Editor</h2>
                                     <p className="text-xs text-muted-foreground">
-                                        {elements.length} element{elements.length !== 1 ? 's' : ''} • {viewportSizes[viewport].label}
+                                        {elements.length} element{elements.length !== 1 ? 's' : ''} • Desktop
                                     </p>
                                 </div>
                             </div>
@@ -279,73 +227,6 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                     <TooltipContent>Preview Only</TooltipContent>
                                 </Tooltip>
                             </div>
-
-                            {/* Code type toggle */}
-                            {(viewMode === 'code' || viewMode === 'split') && (
-                                <div className="flex items-center gap-1 px-1 py-0.5 rounded-lg bg-secondary/50 border border-white/[0.04]">
-                                    <Button
-                                        variant={codeType === 'html' ? 'default' : 'ghost'}
-                                        size="sm"
-                                        className={`h-6 px-2 text-xs ${codeType === 'html' ? 'bg-orange-500/80 text-white' : ''}`}
-                                        onClick={() => setCodeType('html')}
-                                    >
-                                        HTML
-                                    </Button>
-                                    <Button
-                                        variant={codeType === 'react' ? 'default' : 'ghost'}
-                                        size="sm"
-                                        className={`h-6 px-2 text-xs ${codeType === 'react' ? 'bg-cyan-500/80 text-white' : ''}`}
-                                        onClick={() => setCodeType('react')}
-                                    >
-                                        React/Tailwind
-                                    </Button>
-                                </div>
-                            )}
-
-                            {/* Viewport selector (only in preview mode) */}
-                            {(viewMode === 'preview' || viewMode === 'split') && (
-                                <div className="flex items-center gap-1 px-1 py-0.5 rounded-lg bg-secondary/50 border border-white/[0.04]">
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant={viewport === 'desktop' ? 'default' : 'ghost'}
-                                                size="icon"
-                                                className={`h-7 w-7 ${viewport === 'desktop' ? 'bg-primary text-primary-foreground' : ''}`}
-                                                onClick={() => setViewport('desktop')}
-                                            >
-                                                <Monitor className="w-3.5 h-3.5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Desktop</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant={viewport === 'tablet' ? 'default' : 'ghost'}
-                                                size="icon"
-                                                className={`h-7 w-7 ${viewport === 'tablet' ? 'bg-primary text-primary-foreground' : ''}`}
-                                                onClick={() => setViewport('tablet')}
-                                            >
-                                                <Tablet className="w-3.5 h-3.5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Tablet</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant={viewport === 'mobile' ? 'default' : 'ghost'}
-                                                size="icon"
-                                                className={`h-7 w-7 ${viewport === 'mobile' ? 'bg-primary text-primary-foreground' : ''}`}
-                                                onClick={() => setViewport('mobile')}
-                                            >
-                                                <Smartphone className="w-3.5 h-3.5" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Mobile</TooltipContent>
-                                    </Tooltip>
-                                </div>
-                            )}
                         </div>
 
                         {/* Actions */}
@@ -356,38 +237,12 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8"
-                                        onClick={handleResetCode}
+                                        onClick={handleExport}
                                     >
-                                        <RotateCcw className="w-4 h-4" />
+                                        {exported ? <Check className="w-4 h-4 text-green-500" /> : <Download className="w-4 h-4" />}
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Reset to Generated Code</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={handleCopy}
-                                    >
-                                        {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>{copied ? 'Copied!' : 'Copy Code'}</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={handleOpenInNewTab}
-                                    >
-                                        <ExternalLink className="w-4 h-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Open in New Tab</TooltipContent>
+                                <TooltipContent>{exported ? 'Exported!' : 'Export Code'}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -415,7 +270,28 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                     </div>
 
                     {/* Main content area */}
-                    <div className="flex-1 overflow-hidden flex">
+                    <div className="flex-1 overflow-hidden flex flex-col">
+                        {/* Code Sync Warning */}
+                        {showSyncWarning && (
+                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 p-3 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span className="text-sm text-yellow-800 dark:text-yellow-200">
+                                        Code has been modified manually. Note: Code edits are for export only and won't update the canvas.
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={handleResetCode}
+                                    className="px-3 py-1 text-sm bg-yellow-600 hover:bg-yellow-700 text-white rounded-md transition-colors"
+                                >
+                                    Sync from Canvas
+                                </button>
+                            </div>
+                        )}
+                        
+                        <div className="flex-1 overflow-hidden flex">
                         {/* Code Editor */}
                         {(viewMode === 'code' || viewMode === 'split') && (
                             <div className={`flex flex-col bg-[#0d1117] ${viewMode === 'split' ? 'w-1/2 border-r border-white/[0.06]' : 'w-full'}`}>
@@ -427,26 +303,21 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                         <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
                                     </div>
                                     <span className="text-xs text-gray-500 ml-2">
-                                        {codeType === 'html' ? 'index.html' : 'GeneratedPage.tsx'}
+                                        GeneratedPage.tsx
                                     </span>
                                     <div className="ml-auto flex items-center gap-1">
                                         <span className="text-[10px] text-gray-600 px-2 py-0.5 rounded bg-gray-800">
-                                            {codeType === 'html' ? 'HTML' : 'TSX'}
+                                            TSX
                                         </span>
                                     </div>
                                 </div>
                                 {/* Code textarea */}
                                 <textarea
-                                    value={editableCode}
+                                    value={editableReact}
                                     onChange={(e) => {
-                                        if (codeType === 'html') {
-                                            setEditableHtml(e.target.value);
-                                            setIsHtmlDirty(true);
-                                            return;
-                                        }
-
                                         setEditableReact(e.target.value);
                                         setIsReactDirty(true);
+                                        setShowSyncWarning(true);
                                     }}
                                     className="flex-1 w-full p-4 bg-[#0d1117] text-gray-300 font-mono text-sm resize-none focus:outline-none leading-relaxed"
                                     spellCheck={false}
@@ -461,7 +332,7 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                 <motion.div
                                     className="bg-white rounded-lg shadow-2xl overflow-hidden relative"
                                     style={{
-                                        width: viewMode === 'split' ? '100%' : viewportSizes[viewport].width,
+                                        width: viewMode === 'split' ? '100%' : desktopWidth,
                                         maxWidth: '100%'
                                     }}
                                     layout
@@ -481,41 +352,70 @@ export function PreviewPanel({ open, onOpenChange }: PreviewPanelProps) {
                                         </div>
                                     </div>
 
-                                    {/* Direct React preview - renders actual canvas elements */}
-                                    <div 
-                                        className="w-full bg-[#0f172a] relative overflow-auto"
-                                        style={{
-                                            height: isFullscreen ? 'calc(100vh - 140px)' : '65vh',
-                                            minHeight: '400px'
-                                        }}
-                                    >
-                                        {/* Render all canvas elements in their positions */}
-                                        {elements.map((element) => (
-                                            <div
-                                                key={element.id}
-                                                style={{
-                                                    position: 'absolute',
-                                                    left: element.x,
-                                                    top: element.y,
-                                                    width: element.width,
-                                                    height: element.height,
-                                                }}
-                                            >
-                                                <ElementRenderer element={element} isEditing={false} />
+                                    {/* Preview content - shows canvas elements or React edit message */}
+                                    {isReactDirty ? (
+                                        /* React code is edited - show message */
+                                        <div 
+                                            className="w-full bg-[#0f172a] relative overflow-auto flex items-center justify-center"
+                                            style={{
+                                                height: isFullscreen ? 'calc(100vh - 140px)' : '65vh',
+                                                minHeight: '400px'
+                                            }}
+                                        >
+                                            <div className="text-center p-8 max-w-md">
+                                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                    <Code className="w-8 h-8 text-blue-500" />
+                                                </div>
+                                                <h3 className="text-lg font-semibold text-white mb-2">React Code Preview</h3>
+                                                <p className="text-sm text-gray-400 mb-4">
+                                                    React/TSX code cannot be previewed in real-time. Click "Sync from Canvas" to see the canvas state, or export the code to use in your project.
+                                                </p>
+                                                <Button
+                                                    onClick={handleResetCode}
+                                                    size="sm"
+                                                    className="gap-2"
+                                                >
+                                                    <RotateCcw className="w-4 h-4" />
+                                                    Sync from Canvas
+                                                </Button>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        /* Default: Direct React preview - renders actual canvas elements */
+                                        <div 
+                                            className="w-full bg-[#0f172a] relative overflow-auto"
+                                            style={{
+                                                height: isFullscreen ? 'calc(100vh - 140px)' : '65vh',
+                                                minHeight: '400px'
+                                            }}
+                                        >
+                                            {/* Render all canvas elements in their positions */}
+                                            {elements.map((element) => (
+                                                <div
+                                                    key={element.id}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        left: element.x,
+                                                        top: element.y,
+                                                        width: element.width,
+                                                        height: element.height,
+                                                    }}
+                                                >
+                                                    <ElementRenderer element={element} isEditing={false} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </motion.div>
                             </div>
                         )}
+                        </div>
                     </div>
 
                     {/* Footer */}
                     <div className="flex items-center justify-between px-4 py-2 border-t border-white/[0.06] bg-card/50 shrink-0">
                         <p className="text-xs text-muted-foreground">
-                            {codeType === 'html'
-                                ? 'Edit HTML code and see changes live • HTML edits update preview instantly'
-                                : 'React/Tailwind code for export • Preview shows HTML version'}
+                            React/Tailwind code for export • Preview shows canvas elements
                         </p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">

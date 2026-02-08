@@ -1,32 +1,27 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   ChevronRight,
-  Users,
+  ArrowLeft,
   Undo2,
   Redo2,
   ZoomIn,
   ZoomOut,
   Command,
   Layers,
-  Settings,
   Eye,
   EyeOff,
   Code,
   Hand,
   MousePointer2,
   Palette,
-  Check
+  Check,
+  Save
 } from 'lucide-react';
 import { useBuilder, themePalettes } from '@/contexts/BuilderContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-const mockAvatars = [
-  { id: 1, name: 'Alex', color: 'bg-emerald-500' },
-  { id: 2, name: 'Jordan', color: 'bg-violet-500' },
-  { id: 3, name: 'Sam', color: 'bg-amber-500' },
-];
 
 export function TopBar() {
   const {
@@ -44,10 +39,28 @@ export function TopBar() {
     setActiveTool,
     activeTheme,
     setActiveTheme,
-    setPreviewPanelOpen
+    setPreviewPanelOpen,
+    projectName,
+    setProjectName,
+    saveCurrentProject
   } = useBuilder();
 
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState('');
+  const navigate = useNavigate();
+
+  const handleSaveName = () => {
+    if (editingName.trim() && editingName.trim() !== projectName) {
+      setProjectName(editingName.trim());
+    }
+    setIsEditingName(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingName(projectName);
+    setIsEditingName(false);
+  };
 
   return (
     <motion.header
@@ -56,24 +69,70 @@ export function TopBar() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Left section: Logo + Breadcrumbs */}
+      {/* Left section: Back button + Project name */}
       <div className="flex items-center gap-4">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
+        {/* Back to Dashboard */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => navigate('/dashboard')}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Back to Dashboard</TooltipContent>
+        </Tooltip>
+
+        {/* Logo - Clickable to home */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
             <Layers className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
           <span className="font-semibold text-sm tracking-tight">CanvasX</span>
-        </div>
+        </button>
 
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-          <span className="hover:text-foreground cursor-pointer transition-colors">Workspace</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="hover:text-foreground cursor-pointer transition-colors">My Project</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-foreground font-medium">Homepage</span>
-        </nav>
+        {/* Project name - Editable */}
+        {isEditingName ? (
+          <input
+            type="text"
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            onBlur={handleSaveName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSaveName();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleCancelEdit();
+              }
+            }}
+            className="px-3 py-1.5 rounded-md bg-secondary/50 border border-primary text-sm font-medium outline-none"
+            autoFocus
+            onFocus={(e) => e.target.select()}
+          />
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  setEditingName(projectName);
+                  setIsEditingName(true);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary/50 border border-white/[0.04] hover:border-primary/50 transition-colors"
+              >
+                <span className="text-sm font-medium">{projectName}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Click to rename</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Center section: Tools */}
@@ -241,6 +300,22 @@ export function TopBar() {
 
       {/* Right section: Actions */}
       <div className="flex items-center gap-3">
+        {/* Save button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 gap-2"
+              onClick={saveCurrentProject}
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span className="text-xs">Save</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Save Project (⌘S)</TooltipContent>
+        </Tooltip>
+
         {/* Preview toggle */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -272,20 +347,6 @@ export function TopBar() {
           <TooltipContent>Open Live Preview</TooltipContent>
         </Tooltip>
 
-        {/* Export Code */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setExportDialogOpen(true)}
-            >
-              <Code className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Export Code</TooltipContent>
-        </Tooltip>
       </div>
     </motion.header>
   );
