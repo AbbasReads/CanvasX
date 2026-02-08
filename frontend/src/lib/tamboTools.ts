@@ -190,12 +190,13 @@ The tool will apply changes to the currently selected element in the canvas buil
         }
 
         // Color properties
+        // Apply style updates - colors go as direct props for interactable components
         if (input.backgroundColor !== undefined) {
-            styles.backgroundColor = input.backgroundColor;
+            updates.backgroundColor = input.backgroundColor;
             appliedChanges.push(`background color → ${input.backgroundColor}`);
         }
         if (input.textColor !== undefined) {
-            styles.color = input.textColor;
+            updates.textColor = input.textColor;
             appliedChanges.push(`text color → ${input.textColor}`);
         }
         
@@ -210,7 +211,7 @@ The tool will apply changes to the currently selected element in the canvas buil
             appliedChanges.push(`accent color → ${input.accentColor}`);
         }
         if (input.background !== undefined) {
-            styles.background = input.background;
+            updates.background = input.background;
             appliedChanges.push(`background → ${input.background}`);
         }
 
