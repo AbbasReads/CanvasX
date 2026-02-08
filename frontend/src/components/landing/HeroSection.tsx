@@ -46,7 +46,7 @@ export function HeroSection() {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-3"
         >
-          <Link to="/builder">
+          <Link to="/dashboard">
             <Button 
               size="lg" 
               className="h-11 px-6 text-sm bg-foreground text-background hover:bg-foreground/90 rounded-full group"

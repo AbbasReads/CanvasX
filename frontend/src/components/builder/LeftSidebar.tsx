@@ -615,6 +615,8 @@ export function LeftSidebar() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['Layout', 'Elements']);
   const [selectedComponentType, setSelectedComponentType] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [layersHeight, setLayersHeight] = useState(160);
+  const [isResizingLayers, setIsResizingLayers] = useState(false);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev =>
@@ -783,11 +785,35 @@ export function LeftSidebar() {
         </AnimatePresence>
 
         {/* Layers section */}
-        <div className="border-t border-white/[0.04]">
+        <div className="border-t border-white/[0.04] relative" style={{ height: layersHeight, minHeight: 100 }}>
+          {/* Resize handle for layers */}
+          <div
+            className="h-1 cursor-row-resize hover:bg-primary/50 transition-colors absolute left-0 right-0 top-0 z-10"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizingLayers(true);
+              const startY = e.clientY;
+              const startHeight = layersHeight;
+
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                const newHeight = Math.max(100, Math.min(400, startHeight - (moveEvent.clientY - startY)));
+                setLayersHeight(newHeight);
+              };
+
+              const handleMouseUp = () => {
+                setIsResizingLayers(false);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
+            }}
+          />
           <div className="px-3 py-2">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Layers</span>
           </div>
-          <div className="px-1 pb-2 max-h-40 overflow-y-auto">
+          <div className="px-1 pb-2 overflow-y-auto" style={{ height: 'calc(100% - 40px)' }}>
             {elements.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">No elements yet</p>
             ) : (
