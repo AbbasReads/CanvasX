@@ -239,36 +239,8 @@ export function TopBar() {
         </div>
       </div>
 
-      {/* Right section: Collaboration + Actions */}
+      {/* Right section: Actions */}
       <div className="flex items-center gap-3">
-        {/* Collaboration avatars */}
-        <div className="flex items-center -space-x-2">
-          {mockAvatars.map((avatar, i) => (
-            <Tooltip key={avatar.id}>
-              <TooltipTrigger asChild>
-                <motion.div
-                  className={`w-7 h-7 rounded-full ${avatar.color} border-2 border-background flex items-center justify-center text-xs font-medium text-white cursor-pointer`}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ scale: 1.1, zIndex: 10 }}
-                >
-                  {avatar.name[0]}
-                </motion.div>
-              </TooltipTrigger>
-              <TooltipContent>{avatar.name}</TooltipContent>
-            </Tooltip>
-          ))}
-          <motion.button
-            className="w-7 h-7 rounded-full bg-secondary border-2 border-background flex items-center justify-center hover:bg-secondary/80 transition-colors"
-            whileHover={{ scale: 1.1 }}
-          >
-            <Users className="w-3.5 h-3.5 text-muted-foreground" />
-          </motion.button>
-        </div>
-
-        <div className="w-px h-6 bg-border" />
-
         {/* Preview toggle */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -314,38 +286,6 @@ export function TopBar() {
           </TooltipTrigger>
           <TooltipContent>Export Code</TooltipContent>
         </Tooltip>
-
-        {/* Settings */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Settings</TooltipContent>
-        </Tooltip>
-
-        {/* Publish button with glow */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Button
-            className="h-8 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm relative overflow-hidden group"
-          >
-            <span className="relative z-10">Publish</span>
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-primary via-primary-glow to-primary opacity-0 group-hover:opacity-100 transition-opacity"
-              initial={false}
-            />
-            <motion.div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100"
-              style={{
-                boxShadow: '0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3)'
-              }}
-            />
-          </Button>
-        </motion.div>
       </div>
     </motion.header>
   );

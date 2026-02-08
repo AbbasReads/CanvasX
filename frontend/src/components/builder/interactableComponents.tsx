@@ -1,6 +1,6 @@
 import { withInteractable } from '@tambo-ai/react';
 import { z } from 'zod';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CanvasElement, useBuilder, ThemePalette } from '@/contexts/BuilderContext';
 
 // ============================================================================
@@ -413,10 +413,14 @@ export const InteractableHero = withInteractable(HeroComponent, {
 
 type ButtonProps = z.infer<typeof buttonPropsSchema> & InteractableComponentProps;
 
-function ButtonComponent({ element, text, backgroundColor, textColor, borderRadius, fontSize, padding, style }: ButtonProps) {
+function ButtonComponent({ element, text, backgroundColor, textColor, borderRadius, fontSize, padding, style, onPropsUpdate }: ButtonProps) {
     const { activeTheme } = useBuilder();
     const tokens = createDesignTokens(activeTheme);
     const variantStyle = style || (element.props?.style as string) || 'primary';
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editText, setEditText] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+    const savingRef = useRef(false);
 
     const finalText = text || (element.props?.text as string) || element.label || 'Button';
 
@@ -427,6 +431,66 @@ function ButtonComponent({ element, text, backgroundColor, textColor, borderRadi
         gradient: { background: backgroundColor || `linear-gradient(135deg, ${tokens.colors.accent} 0%, ${tokens.colors.accentSecondary} 100%)`, color: textColor || 'white', border: 'none' },
     };
 
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditText(finalText);
+        setIsEditMode(true);
+        savingRef.current = false;
+    };
+
+    const handleSave = () => {
+        if (savingRef.current) return;
+        savingRef.current = true;
+        
+        if (editText.trim() && onPropsUpdate) {
+            onPropsUpdate({ text: editText });
+        }
+        setIsEditMode(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSave();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            savingRef.current = true;
+            setIsEditMode(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isEditMode && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isEditMode]);
+
+    if (isEditMode) {
+        return (
+            <div className="w-full h-full flex items-center justify-center" style={{ ...variants[variantStyle], borderRadius: borderRadius ? `${borderRadius}px` : tokens.radius.md }}>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={handleSave}
+                    onKeyDown={handleKeyDown}
+                    className="w-full bg-transparent border-none outline-none text-center"
+                    style={{ 
+                        fontSize: fontSize ? `${fontSize}px` : '14px', 
+                        fontWeight: 500,
+                        color: 'inherit',
+                        padding: padding ? `${padding}px` : undefined,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                />
+            </div>
+        );
+    }
+
     return (
         <button
             className="w-full h-full flex items-center justify-center transition-all"
@@ -436,7 +500,9 @@ function ButtonComponent({ element, text, backgroundColor, textColor, borderRadi
                 fontWeight: 500,
                 borderRadius: borderRadius ? `${borderRadius}px` : tokens.radius.md,
                 padding: padding ? `${padding}px` : undefined,
+                cursor: 'text',
             }}
+            onDoubleClick={handleDoubleClick}
         >
             {finalText}
         </button>
@@ -455,10 +521,14 @@ export const InteractableButton = withInteractable(ButtonComponent, {
 
 type TextProps = z.infer<typeof textPropsSchema> & InteractableComponentProps;
 
-function TextComponent({ element, text, fontSize, fontWeight, textColor, lineHeight, style }: TextProps) {
+function TextComponent({ element, text, fontSize, fontWeight, textColor, lineHeight, style, onPropsUpdate }: TextProps) {
     const { activeTheme } = useBuilder();
     const tokens = createDesignTokens(activeTheme);
     const variantStyle = style || (element.props?.style as string) || 'paragraph';
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editText, setEditText] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+    const savingRef = useRef(false);
 
     const finalText = text || (element.props?.text as string) || element.label || 'Text content';
 
@@ -468,8 +538,75 @@ function TextComponent({ element, text, fontSize, fontWeight, textColor, lineHei
         caption: { fontSize: fontSize ? `${fontSize}px` : '13px', fontWeight: fontWeight || 500, color: textColor || tokens.colors.text.muted, textTransform: 'uppercase' as const, letterSpacing: '0.05em' },
     };
 
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditText(finalText);
+        setIsEditMode(true);
+        savingRef.current = false;
+    };
+
+    const handleSave = () => {
+        if (savingRef.current) return;
+        savingRef.current = true;
+        
+        if (editText.trim() && onPropsUpdate) {
+            onPropsUpdate({ text: editText });
+        }
+        setIsEditMode(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSave();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            savingRef.current = true;
+            setIsEditMode(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isEditMode && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isEditMode]);
+
+    if (isEditMode) {
+        return (
+            <div className="w-full h-full flex items-center" style={{ padding: tokens.spacing.sm }}>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={handleSave}
+                    onKeyDown={handleKeyDown}
+                    className="w-full h-full bg-transparent border-none outline-none"
+                    style={{
+                        color: textColor || tokens.colors.text.primary,
+                        ...variants[variantStyle],
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                />
+            </div>
+        );
+    }
+
     return (
-        <div className="w-full h-full flex items-center" style={{ color: textColor || tokens.colors.text.primary, padding: tokens.spacing.sm, ...variants[variantStyle] }}>
+        <div 
+            className="w-full h-full flex items-center" 
+            style={{ 
+                color: textColor || tokens.colors.text.primary, 
+                padding: tokens.spacing.sm, 
+                ...variants[variantStyle],
+                cursor: 'text',
+            }}
+            onDoubleClick={handleDoubleClick}
+        >
             {finalText}
         </div>
     );

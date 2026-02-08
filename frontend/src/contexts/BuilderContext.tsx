@@ -52,6 +52,7 @@ interface BuilderContextType {
   setElements: (elements: CanvasElement[]) => void;
   addElement: (element: CanvasElement) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  updateElementWithoutHistory: (id: string, updates: Partial<CanvasElement>) => void;
   removeElement: (id: string) => void;
   reorderElements: (fromIndex: number, toIndex: number) => void;
   selectElement: (id: string | null) => void;
@@ -127,11 +128,16 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
   const pushHistory = useCallback((newElements: CanvasElement[]) => {
     setHistory(prev => {
+      // Remove any future history when making a new change
       const newHistory = prev.slice(0, historyIndex + 1);
       newHistory.push({ elements: newElements, timestamp: Date.now() });
-      return newHistory.slice(-50); // Keep last 50 states
+      // Keep last 50 states
+      const trimmedHistory = newHistory.slice(-50);
+      // Calculate new index based on trimmed history length
+      const newIndex = trimmedHistory.length - 1;
+      setHistoryIndex(newIndex);
+      return trimmedHistory;
     });
-    setHistoryIndex(prev => Math.min(prev + 1, 49));
   }, [historyIndex]);
 
   const setElements = useCallback((newElements: CanvasElement[]) => {
@@ -163,6 +169,25 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     setElementsInternal(newElements);
     pushHistory(newElements);
   }, [elements, pushHistory]);
+
+  // Update element without adding to history (for intermediate drag/resize states)
+  const updateElementWithoutHistory = useCallback((id: string, updates: Partial<CanvasElement>) => {
+    const newElements = elements.map(el => {
+      if (el.id !== id) return el;
+
+      // Deep merge props if both exist
+      const mergedProps = updates.props
+        ? { ...(el.props || {}), ...updates.props }
+        : el.props;
+
+      return {
+        ...el,
+        ...updates,
+        props: mergedProps
+      };
+    });
+    setElementsInternal(newElements);
+  }, [elements]);
 
   const removeElement = useCallback((id: string) => {
     const newElements = elements.filter(el => el.id !== id);
@@ -226,6 +251,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     setElements,
     addElement,
     updateElement,
+    updateElementWithoutHistory,
     removeElement,
     reorderElements,
     selectElement,
