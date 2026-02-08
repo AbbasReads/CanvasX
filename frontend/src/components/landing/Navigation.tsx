@@ -18,7 +18,7 @@ export function Navigation() {
           <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center group-hover:scale-105 transition-transform">
             <Layers className="w-3.5 h-3.5 text-background" />
           </div>
-          <span className="font-semibold text-sm tracking-tight">Spatial</span>
+          <span className="font-semibold text-sm tracking-tight">CanvasX</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
@@ -28,19 +28,9 @@ export function Navigation() {
           <a href="#ai" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
             AI Agent
           </a>
-          <a href="#pricing" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-            Pricing
-          </a>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-[13px] text-muted-foreground hover:text-foreground h-8 px-3"
-          >
-            Sign In
-          </Button>
           <Link to="/builder">
             <Button 
               size="sm" 

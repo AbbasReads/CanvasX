@@ -35,7 +35,7 @@ export function HeroSection() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto mb-10 leading-relaxed"
         >
-          The spatial canvas that thinks with you. Build production-ready websites 
+          The canvas that thinks with you. Build production-ready websites 
           using natural language and intuitive drag-and-drop.
         </motion.p>
 
@@ -55,13 +55,6 @@ export function HeroSection() {
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </Link>
-          <Button 
-            variant="ghost" 
-            size="lg" 
-            className="h-11 px-6 text-sm text-muted-foreground hover:text-foreground"
-          >
-            Watch Demo
-          </Button>
         </motion.div>
 
         {/* Keyboard hint */}
@@ -102,7 +95,7 @@ export function HeroSection() {
           <div className="relative">
             <img 
               src="/landing.png" 
-              alt="Spatial Builder Interface" 
+              alt="CanvasX Builder Interface" 
               className="w-full h-auto"
             />
           </div>

@@ -13,7 +13,7 @@ import {
 const features = [
   {
     icon: MousePointerClick,
-    title: 'Spatial Canvas',
+    title: 'Infinite Canvas',
     description: 'Infinite workspace with precision snap-to-grid. Design without constraints.',
     accent: false,
   },
