@@ -560,17 +560,81 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
   const generateTailwindElement = (element: CanvasElement): string => {
     const customStyles = element.props?.styles as Record<string, string> || {};
 
-    // Build custom style object for non-Tailwind properties
-    // Read from both customStyles and directly from element.props
+    // Build complete style object with all properties
     const styleEntries: string[] = [];
+    
+    // Add absolute positioning to match preview
+    styleEntries.push(`position: 'absolute'`);
+    styleEntries.push(`left: ${element.x}`);
+    styleEntries.push(`top: ${element.y}`);
+    styleEntries.push(`width: ${element.width}`);
+    styleEntries.push(`height: ${element.height}`);
+    
+    // Extract all style properties from both customStyles and direct props
     const bgColor = (element.props?.backgroundColor as string) || customStyles.backgroundColor;
     const background = (element.props?.background as string) || customStyles.background;
-    const textColor = (element.props?.textColor as string) || customStyles.color;
+    const textColor = (element.props?.textColor as string) || (element.props?.color as string) || customStyles.color;
+    const fontSize = customStyles.fontSize || ((element.props?.fontSize as number) ? `${element.props.fontSize}px` : undefined);
+    const fontWeight = customStyles.fontWeight || (element.props?.fontWeight as string | number);
+    const fontFamily = customStyles.fontFamily || (element.props?.fontFamily as string);
+    const borderRadius = customStyles.borderRadius || ((element.props?.borderRadius as number) ? `${element.props.borderRadius}px` : undefined);
+    const padding = customStyles.padding || ((element.props?.padding as number) ? `${element.props.padding}px` : undefined);
+    const margin = customStyles.margin;
+    const border = customStyles.border;
+    const borderWidth = customStyles.borderWidth;
+    const borderColor = customStyles.borderColor;
+    const borderStyle = customStyles.borderStyle;
+    const boxShadow = customStyles.boxShadow;
+    const opacity = customStyles.opacity || (element.props?.opacity as number);
+    const display = customStyles.display;
+    const flexDirection = customStyles.flexDirection;
+    const alignItems = customStyles.alignItems;
+    const justifyContent = customStyles.justifyContent;
+    const gap = customStyles.gap;
+    const overflow = customStyles.overflow;
+    const textAlign = customStyles.textAlign;
+    const lineHeight = customStyles.lineHeight;
+    const letterSpacing = customStyles.letterSpacing;
+    const textTransform = customStyles.textTransform;
+    const backdropFilter = customStyles.backdropFilter;
+    const transform = customStyles.transform;
+    const transition = customStyles.transition;
+    const cursor = customStyles.cursor;
+    const zIndex = customStyles.zIndex;
 
+    // Add all defined styles
     if (bgColor) styleEntries.push(`backgroundColor: '${bgColor}'`);
     if (background) styleEntries.push(`background: '${background}'`);
     if (textColor) styleEntries.push(`color: '${textColor}'`);
-    const customStyleStr = styleEntries.length > 0 ? ` style={{ ${styleEntries.join(', ')} }}` : '';
+    if (fontSize) styleEntries.push(`fontSize: '${fontSize}'`);
+    if (fontWeight) styleEntries.push(`fontWeight: ${typeof fontWeight === 'number' ? fontWeight : `'${fontWeight}'`}`);
+    if (fontFamily) styleEntries.push(`fontFamily: '${fontFamily}'`);
+    if (borderRadius) styleEntries.push(`borderRadius: '${borderRadius}'`);
+    if (padding) styleEntries.push(`padding: '${padding}'`);
+    if (margin) styleEntries.push(`margin: '${margin}'`);
+    if (border) styleEntries.push(`border: '${border}'`);
+    if (borderWidth) styleEntries.push(`borderWidth: '${borderWidth}'`);
+    if (borderColor) styleEntries.push(`borderColor: '${borderColor}'`);
+    if (borderStyle) styleEntries.push(`borderStyle: '${borderStyle}'`);
+    if (boxShadow) styleEntries.push(`boxShadow: '${boxShadow}'`);
+    if (opacity !== undefined) styleEntries.push(`opacity: ${opacity}`);
+    if (display) styleEntries.push(`display: '${display}'`);
+    if (flexDirection) styleEntries.push(`flexDirection: '${flexDirection}'`);
+    if (alignItems) styleEntries.push(`alignItems: '${alignItems}'`);
+    if (justifyContent) styleEntries.push(`justifyContent: '${justifyContent}'`);
+    if (gap) styleEntries.push(`gap: '${gap}'`);
+    if (overflow) styleEntries.push(`overflow: '${overflow}'`);
+    if (textAlign) styleEntries.push(`textAlign: '${textAlign}'`);
+    if (lineHeight) styleEntries.push(`lineHeight: ${typeof lineHeight === 'number' ? lineHeight : `'${lineHeight}'`}`);
+    if (letterSpacing) styleEntries.push(`letterSpacing: '${letterSpacing}'`);
+    if (textTransform) styleEntries.push(`textTransform: '${textTransform}'`);
+    if (backdropFilter) styleEntries.push(`backdropFilter: '${backdropFilter}'`);
+    if (transform) styleEntries.push(`transform: '${transform}'`);
+    if (transition) styleEntries.push(`transition: '${transition}'`);
+    if (cursor) styleEntries.push(`cursor: '${cursor}'`);
+    if (zIndex) styleEntries.push(`zIndex: ${zIndex}`);
+    
+    const customStyleStr = ` style={{ ${styleEntries.join(', ')} }}`;
 
     switch (element.type) {
       case 'button':
@@ -884,7 +948,7 @@ export function generateReactTailwind(elements: CanvasElement[]): string {
 
 export default function GeneratedPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans">
+    <div className="relative min-h-screen text-white font-sans" style={{ backgroundColor: '#0f172a' }}>
 ${elementsJSX}
     </div>
   );
