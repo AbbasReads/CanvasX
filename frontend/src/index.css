@@ -11,7 +11,72 @@
 
 @layer base {
   :root {
-    /* Deep Space Color Palette */
+    /* Light Theme - Professional Academic Portfolio */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Professional Blue Accent */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 217 91% 65%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Browser chrome colors */
+    --chrome-red: 0 72% 51%;
+    --chrome-yellow: 45 93% 58%;
+    --chrome-green: 142 71% 45%;
+
+    /* Light borders */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.5rem;
+
+    /* Glass effects for light theme */
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-border: 214 32% 91%;
+    --glass-highlight: 0 0% 100% / 0.5;
+
+    /* Canvas specific - light background */
+    --canvas-bg: 0 0% 98%;
+    --canvas-grid: 214 32% 91%;
+    --canvas-selection: 217 91% 60%;
+
+    /* Interactive states */
+    --hover-glow: 217 91% 60% / 0.1;
+    --active-glow: 217 91% 60% / 0.15;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    /* Dark theme variant (optional) */
     --background: 228 12% 5%;
     --foreground: 220 20% 95%;
 
@@ -21,7 +86,6 @@
     --popover: 228 15% 10%;
     --popover-foreground: 220 20% 95%;
 
-    /* Electric Blue Accent */
     --primary: 217 91% 60%;
     --primary-foreground: 220 20% 98%;
     --primary-glow: 217 91% 65%;
@@ -38,33 +102,21 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Browser chrome colors */
-    --chrome-red: 0 72% 51%;
-    --chrome-yellow: 45 93% 58%;
-    --chrome-green: 142 71% 45%;
-
-    /* Subtle borders with low opacity */
     --border: 220 15% 20%;
     --input: 228 12% 12%;
     --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
-
-    /* Glass effects */
     --glass-bg: 228 15% 8% / 0.8;
     --glass-border: 0 0% 100% / 0.06;
     --glass-highlight: 0 0% 100% / 0.03;
 
-    /* Canvas specific */
     --canvas-bg: 228 15% 4%;
     --canvas-grid: 220 15% 12%;
     --canvas-selection: 217 91% 60%;
 
-    /* Interactive states */
     --hover-glow: 217 91% 60% / 0.15;
     --active-glow: 217 91% 60% / 0.25;
 
-    /* Sidebar */
     --sidebar-background: 228 12% 6%;
     --sidebar-foreground: 220 20% 85%;
     --sidebar-primary: 217 91% 60%;
@@ -73,12 +125,6 @@
     --sidebar-accent-foreground: 220 20% 90%;
     --sidebar-border: 220 15% 15%;
     --sidebar-ring: 217 91% 60%;
-  }
-
-  .dark {
-    /* Same as root - this is a dark-first design */
-    --background: 228 12% 5%;
-    --foreground: 220 20% 95%;
   }
 }
 

@@ -521,6 +521,270 @@ export function CardRenderer({ element }: RendererProps) {
     );
 }
 
+// BioSection Renderer - Academic portfolio biographical section
+export function BioSectionRenderer({ element }: RendererProps) {
+    const { activeTheme } = useBuilder();
+    const tokens = createDesignTokens(activeTheme);
+    const styleProps = getStyleProps(element, tokens);
+
+    // Get props from element with defaults from schema
+    const heading = (element.props?.heading as string) || 'About Me';
+    const content = (element.props?.content as string) || 'Enter your biographical information here.';
+    const profileImageUrl = (element.props?.profileImageUrl as string) || '';
+    const imagePosition = (element.props?.imagePosition as string) || 'left';
+    const imageSize = (element.props?.imageSize as string) || 'medium';
+
+    const textColor = styleProps.textColor || tokens.colors.text.primary;
+    const fontSize = styleProps.fontSize || '16px';
+    const fontFamily = styleProps.fontFamily;
+
+    // Image size mapping
+    const imageSizeMap: Record<string, string> = {
+        small: '120px',
+        medium: '200px',
+        large: '280px',
+    };
+
+    const imageWidth = imageSizeMap[imageSize] || imageSizeMap.medium;
+
+    // Render image element
+    const renderImage = () => {
+        if (!profileImageUrl || imagePosition === 'none') return null;
+
+        return (
+            <div
+                className="flex-shrink-0 overflow-hidden"
+                style={{
+                    width: imageWidth,
+                    height: imageWidth,
+                    borderRadius: tokens.radius.lg,
+                    backgroundColor: tokens.colors.surface,
+                    border: `1px solid ${tokens.colors.border}`,
+                }}
+            >
+                <img
+                    src={profileImageUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                />
+            </div>
+        );
+    };
+
+    // Layout based on image position
+    const isImageLeft = imagePosition === 'left';
+    const isImageRight = imagePosition === 'right';
+    const isImageCenter = imagePosition === 'center';
+    const hasImage = profileImageUrl && imagePosition !== 'none';
+
+    return (
+        <section
+            className="w-full h-full flex flex-col"
+            style={{
+                backgroundColor: styleProps.backgroundColor || tokens.colors.background,
+                padding: styleProps.padding || tokens.spacing.lg,
+                ...styleProps.customStyles,
+            }}
+        >
+            {/* Heading */}
+            <h2
+                style={{
+                    fontSize: '32px',
+                    fontWeight: styleProps.fontWeight || 700,
+                    color: textColor,
+                    marginBottom: tokens.spacing.md,
+                    letterSpacing: '-0.02em',
+                    fontFamily,
+                }}
+            >
+                {heading}
+            </h2>
+
+            {/* Content with image */}
+            {isImageCenter && hasImage ? (
+                <div className="flex flex-col items-center">
+                    <div className="mb-6">{renderImage()}</div>
+                    <div
+                        style={{
+                            fontSize,
+                            color: textColor,
+                            lineHeight: 1.7,
+                            whiteSpace: 'pre-wrap',
+                            fontFamily,
+                            textAlign: 'center',
+                            maxWidth: '800px',
+                        }}
+                    >
+                        {content}
+                    </div>
+                </div>
+            ) : (
+                <div
+                    className={`flex ${isImageLeft || isImageRight ? 'flex-row' : 'flex-col'} gap-6`}
+                    style={{
+                        alignItems: 'flex-start',
+                    }}
+                >
+                    {isImageLeft && renderImage()}
+                    <div
+                        className="flex-1"
+                        style={{
+                            fontSize,
+                            color: textColor,
+                            lineHeight: 1.7,
+                            whiteSpace: 'pre-wrap',
+                            fontFamily,
+                        }}
+                    >
+                        {content}
+                    </div>
+                    {isImageRight && renderImage()}
+                </div>
+            )}
+        </section>
+    );
+}
+
+// ContactCard Renderer - Academic portfolio contact information
+export function ContactCardRenderer({ element }: RendererProps) {
+    const { activeTheme } = useBuilder();
+    const tokens = createDesignTokens(activeTheme);
+    const styleProps = getStyleProps(element, tokens);
+
+    // Get props from element with defaults from schema
+    const email = (element.props?.email as string) || '';
+    const officeLocation = (element.props?.officeLocation as string) || '';
+    const phoneNumber = (element.props?.phoneNumber as string) || '';
+    const officeHours = (element.props?.officeHours as string) || '';
+    const showIcons = element.props?.showIcons !== undefined ? (element.props.showIcons as boolean) : true;
+
+    const textColor = styleProps.textColor || tokens.colors.text.primary;
+    const fontSize = styleProps.fontSize || '15px';
+    const fontFamily = styleProps.fontFamily;
+    const accentColor = styleProps.accentColor || tokens.colors.accent;
+
+    // Filter out empty fields
+    const contactFields = [
+        { icon: '📧', label: 'Email', value: email, href: email ? `mailto:${email}` : undefined },
+        { icon: '📍', label: 'Office', value: officeLocation },
+        { icon: '📞', label: 'Phone', value: phoneNumber, href: phoneNumber ? `tel:${phoneNumber}` : undefined },
+        { icon: '🕐', label: 'Office Hours', value: officeHours },
+    ].filter(field => field.value);
+
+    // If no contact information provided, show placeholder
+    if (contactFields.length === 0) {
+        return (
+            <div
+                className="w-full h-full flex items-center justify-center rounded-xl"
+                style={{
+                    backgroundColor: styleProps.backgroundColor || tokens.colors.surface,
+                    border: `1px solid ${tokens.colors.border}`,
+                    padding: styleProps.padding || tokens.spacing.lg,
+                    borderRadius: styleProps.borderRadius || tokens.radius.xl,
+                    ...styleProps.customStyles,
+                }}
+            >
+                <p style={{ fontSize, color: tokens.colors.text.muted, fontFamily }}>
+                    Add contact information to display
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className="w-full h-full flex flex-col"
+            style={{
+                backgroundColor: styleProps.backgroundColor || tokens.colors.surface,
+                border: `1px solid ${tokens.colors.border}`,
+                padding: styleProps.padding || tokens.spacing.lg,
+                borderRadius: styleProps.borderRadius || tokens.radius.xl,
+                ...styleProps.customStyles,
+            }}
+        >
+            {/* Heading */}
+            <h3
+                style={{
+                    fontSize: '20px',
+                    fontWeight: styleProps.fontWeight || 600,
+                    color: textColor,
+                    marginBottom: tokens.spacing.md,
+                    letterSpacing: '-0.01em',
+                    fontFamily,
+                }}
+            >
+                Contact Information
+            </h3>
+
+            {/* Contact fields */}
+            <div className="flex flex-col gap-4">
+                {contactFields.map((field, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                        {/* Icon */}
+                        {showIcons && (
+                            <div
+                                className="flex-shrink-0 flex items-center justify-center"
+                                style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: tokens.radius.md,
+                                    backgroundColor: `${accentColor}1a`,
+                                    fontSize: '16px',
+                                }}
+                            >
+                                {field.icon}
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                            <div
+                                style={{
+                                    fontSize: '13px',
+                                    color: tokens.colors.text.secondary,
+                                    marginBottom: '2px',
+                                    fontFamily,
+                                    fontWeight: 500,
+                                    textTransform: 'uppercase' as const,
+                                    letterSpacing: '0.05em',
+                                }}
+                            >
+                                {field.label}
+                            </div>
+                            {field.href ? (
+                                <a
+                                    href={field.href}
+                                    style={{
+                                        fontSize,
+                                        color: accentColor,
+                                        fontFamily,
+                                        textDecoration: 'none',
+                                        wordBreak: 'break-word',
+                                    }}
+                                >
+                                    {field.value}
+                                </a>
+                            ) : (
+                                <div
+                                    style={{
+                                        fontSize,
+                                        color: textColor,
+                                        fontFamily,
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                    }}
+                                >
+                                    {field.value}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 // Element Renderer - Main entry point
 export function ElementRenderer({ element, isEditing = false }: RendererProps) {
     const rendererMap: Record<string, React.FC<RendererProps>> = {
@@ -537,6 +801,8 @@ export function ElementRenderer({ element, isEditing = false }: RendererProps) {
         pricing: PricingRenderer,
         faq: FaqRenderer,
         footer: FooterRenderer,
+        BioSection: BioSectionRenderer,
+        ContactCard: ContactCardRenderer,
     };
 
     const { activeTheme } = useBuilder();
