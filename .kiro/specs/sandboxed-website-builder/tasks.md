@@ -16,7 +16,7 @@ Each task builds on previous work, with checkpoints to validate functionality. P
   - Set up Tailwind CSS with light theme configuration
   - _Requirements: 2.5, 7.1, 7.2_
 
-- [ ] 2. Implement canvas state management
+- [x] 2. Implement canvas state management
   - [x] 2.1 Create canvas state reducer with actions
     - Implement CanvasAction types: ADD_COMPONENT, UPDATE_COMPONENT_PROPS, DELETE_COMPONENT, REORDER_COMPONENT, SELECT_COMPONENT, SET_VIEWPORT_MODE, UNDO, REDO, LOAD_STATE
     - Implement canvasReducer function handling all action types
@@ -24,19 +24,19 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - Implement useCanvasState hook for state access
     - _Requirements: 1.4, 6.3, 13.1, 13.4, 14.2, 15.1_
   
-  - [ ]* 2.2 Write property test for component addition preserves defaults
+  - [x]* 2.2 Write property test for component addition preserves defaults
     - **Property 1: Component Addition Preserves Defaults**
     - **Validates: Requirements 1.3, 1.4**
   
-  - [ ]* 2.3 Write property test for component reordering updates sequence
+  - [x]* 2.3 Write property test for component reordering updates sequence
     - **Property 2: Component Reordering Updates Sequence**
     - **Validates: Requirements 1.5, 15.5**
   
-  - [ ]* 2.4 Write property test for unique component identifiers
+  - [x]* 2.4 Write property test for unique component identifiers
     - **Property 3: Unique Component Identifiers**
     - **Validates: Requirements 2.4**
 
-- [ ] 3. Implement history management for undo/redo
+- [x] 3. Implement history management for undo/redo
   - [x] 3.1 Create history state wrapper with circular buffer
     - Implement HistoryState interface with past, present, future arrays
     - Implement history reducer wrapping canvas reducer
@@ -44,15 +44,15 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - Integrate keyboard shortcuts (Ctrl+Z, Ctrl+Shift+Z)
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
   
-  - [ ]* 3.2 Write property test for undo history size limit
+  - [x]* 3.2 Write property test for undo history size limit
     - **Property 18: Undo History Size Limit**
     - **Validates: Requirements 12.1**
   
-  - [ ]* 3.3 Write property test for undo restores previous state
+  - [x]* 3.3 Write property test for undo restores previous state
     - **Property 19: Undo Restores Previous State**
     - **Validates: Requirements 12.2**
   
-  - [ ]* 3.4 Write property test for redo restores next state
+  - [x]* 3.4 Write property test for redo restores next state
     - **Property 20: Redo Restores Next State**
     - **Validates: Requirements 12.3**
 
@@ -64,7 +64,7 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - Create ComponentRegistry class with getSchema, getComponent, createInstance methods
     - _Requirements: 2.1, 2.2, 2.5_
   
-  - [ ]* 4.2 Write property test for component library completeness
+  - [x]* 4.2 Write property test for component library completeness
     - **Property 4: Component Library Completeness**
     - **Validates: Requirements 2.2, 2.5**
 
@@ -413,7 +413,7 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - Update sandbox after deletion
     - _Requirements: 13.3, 13.4, 13.5_
   
-  - [ ]* 18.2 Write property test for component deletion removes from state
+  - [x]* 18.2 Write property test for component deletion removes from state
     - **Property 22: Component Deletion Removes from State**
     - **Validates: Requirements 13.4**
   
@@ -483,7 +483,7 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - **Property 30: External Links Open in New Tab**
     - **Validates: Requirements 19.6**
   
-  - [ ]* 22.5 Write property test for contact card conditional display
+  - [x]* 22.5 Write property test for contact card conditional display
     - **Property 31: Contact Card Conditional Display**
     - **Validates: Requirements 20.3**
   
@@ -491,8 +491,8 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - **Property 32: Education Reverse Chronological Order**
     - **Validates: Requirements 22.4**
 
-- [ ] 23. Implement fast-check generators for property testing
-  - [~] 23.1 Create custom fast-check arbitraries
+- [x] 23. Implement fast-check generators for property testing
+  - [x] 23.1 Create custom fast-check arbitraries
     - Implement arbitraryComponentType() for random component types
     - Implement arbitraryComponentInstance() for random component instances
     - Implement arbitraryCanvasState() for random canvas states
@@ -502,7 +502,7 @@ Each task builds on previous work, with checkpoints to validate functionality. P
     - Implement arbitraryPropertyValue(propDef) for random property values
     - _Requirements: All property tests_
   
-  - [ ]* 23.2 Write unit tests for generators
+  - [x]* 23.2 Write unit tests for generators
     - Test each generator produces valid values
     - Test generators respect constraints
 

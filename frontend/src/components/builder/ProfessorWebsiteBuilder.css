@@ -1,0 +1,799 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+.stitch-workspace {
+  background: #eef2f7;
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.stitch-window {
+  border: 1px solid #cfd8e3;
+  border-radius: 14px;
+  background: #f8fafc;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.stitch-window-bar {
+  background: #ffffff;
+  border-bottom: 1px solid #dbe4ee;
+  height: 50px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+}
+
+.stitch-window-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.stitch-window-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: block;
+}
+
+.stitch-window-dots span:nth-child(1) {
+  background: #ff5f57;
+}
+
+.stitch-window-dots span:nth-child(2) {
+  background: #ffbd2e;
+}
+
+.stitch-window-dots span:nth-child(3) {
+  background: #28c840;
+}
+
+.stitch-window-title {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #475569;
+}
+
+.stitch-window-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stitch-collapse-btn {
+  border: 1px solid #d7e2ee;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.stitch-collapse-btn.is-active {
+  border-color: #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.stitch-upload-btn {
+  position: relative;
+  cursor: pointer;
+  border: 1px solid #d7e2ee;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0f172a;
+}
+
+.stitch-upload-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.stitch-upload-btn.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stitch-upload-btn.is-disabled input {
+  cursor: not-allowed;
+}
+
+.stitch-window-body {
+  max-height: calc(100vh - 180px);
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+.stitch-window-body.is-collapsed {
+  display: none;
+}
+
+.stitch-code-panel {
+  border: 1px solid #cfd8e3;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.stitch-code-panel h3 {
+  margin: 0 0 10px;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #334155;
+}
+
+.stitch-code-panel textarea {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  background: #f8fafc;
+}
+
+.stitch-code-panel.is-collapsed {
+  display: none;
+}
+
+.stitch-editable {
+  outline: 1px dashed transparent;
+  outline-offset: 2px;
+}
+
+.stitch-editable.is-editable:hover,
+.stitch-editable.is-editable:focus {
+  outline-color: rgba(30, 64, 175, 0.4);
+  background: rgba(219, 234, 254, 0.35);
+}
+
+.stitch-editable.is-readonly {
+  cursor: default;
+}
+
+.stitch-page {
+  --bg: #f9f9f9;
+  --surface: #ffffff;
+  --surface-low: #f3f3f3;
+  --surface-container: #eeeeee;
+  --text: #1a1c1c;
+  --muted: #574142;
+  --primary: #690019;
+  --outline: #8b7171;
+  --secondary: #595f67;
+  --outline-variant: #debfbf;
+
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: 'Newsreader', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stitch-page .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+.stitch-topbar {
+  width: 100%;
+  background: var(--bg);
+}
+
+.stitch-topbar-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stitch-brand {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.stitch-topnav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-topnav a {
+  color: #64748b;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.stitch-topnav a:hover {
+  color: var(--primary);
+}
+
+.stitch-topnav button {
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 24px;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.stitch-topnav button:hover {
+  background: #8a1b2d;
+}
+
+.stitch-divider {
+  height: 1px;
+  background: var(--surface-container);
+  width: 100%;
+}
+
+.stitch-layout {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  align-items: start;
+  position: relative;
+}
+
+.stitch-sidebar {
+  position: sticky;
+  top: 0;
+  width: 16rem;
+  height: calc(100vh - 180px);
+  max-height: calc(100vh - 180px);
+  overflow: auto;
+  align-self: start;
+  z-index: 40;
+  background: var(--surface);
+  padding: 8rem 2.5rem 2.5rem;
+}
+
+.stitch-layout.left-nav-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.stitch-layout.left-nav-collapsed .stitch-sidebar {
+  display: none;
+}
+
+.stitch-sidebar-head p:first-child {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-sidebar-head p:last-child {
+  margin: 0.25rem 0 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--outline);
+}
+
+.stitch-sidenav {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.stitch-sidenav a {
+  color: var(--outline);
+  text-decoration: none;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 200ms ease, color 200ms ease;
+}
+
+.stitch-sidenav a:hover {
+  color: var(--primary);
+  transform: translateX(4px);
+}
+
+.stitch-sidenav a.active {
+  color: var(--primary);
+}
+
+.stitch-sidenav a.active::before {
+  content: '→';
+  margin-right: 0.25rem;
+}
+
+.stitch-main {
+  flex: 1;
+  margin-left: 0;
+  padding: 6rem 6rem;
+  display: grid;
+  gap: 8rem;
+}
+
+.stitch-hero {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 3rem;
+  align-items: start;
+}
+
+.stitch-hero-media {
+  grid-column: span 4;
+  display: flex;
+  justify-content: center;
+}
+
+.stitch-portrait-frame {
+  width: 20rem;
+  height: 20rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 12px solid var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.stitch-portrait-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stitch-hero-copy {
+  grid-column: span 8;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.stitch-hero-copy h1 {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  font-size: clamp(2.75rem, 8vw, 5rem);
+  line-height: 1;
+}
+
+.stitch-hero-copy > div > p {
+  margin: 0.5rem 0 0;
+  color: var(--primary);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-style: italic;
+}
+
+.stitch-contact-grid {
+  padding-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.stitch-contact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.stitch-contact-row .material-symbols-outlined {
+  color: var(--primary);
+  margin-top: 0.25rem;
+}
+
+.stitch-contact-row p {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.875rem;
+}
+
+.stitch-contact-row p:first-child {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stitch-contact-row p:not(:first-child) {
+  color: var(--secondary);
+}
+
+.stitch-biography {
+  display: grid;
+  gap: 3rem;
+}
+
+.stitch-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
+.stitch-chip-row span {
+  background: var(--surface-container);
+  color: var(--muted);
+  padding: 0.25rem 1rem;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-split {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 3rem;
+}
+
+.stitch-split > div:first-child {
+  grid-column: span 3;
+}
+
+.stitch-split > div:last-child {
+  grid-column: span 9;
+}
+
+.stitch-split h2 {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.stitch-biography .stitch-split > div:last-child p {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1.65;
+}
+
+.stitch-honors {
+  background: var(--surface-container);
+  padding: 3rem 5rem;
+}
+
+.stitch-honors h2 {
+  color: var(--primary);
+}
+
+.stitch-eyebrow {
+  display: block;
+  margin-bottom: 1rem;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--outline-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-honors h3 {
+  margin: 0 0 2rem;
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+  line-height: 1.15;
+  font-weight: 500;
+}
+
+.stitch-honors h3 span {
+  color: var(--primary);
+  font-style: italic;
+}
+
+.stitch-inline-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+.stitch-inline-btn .material-symbols-outlined {
+  color: var(--primary);
+}
+
+.stitch-honors-grid {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(139, 113, 113, 0.1);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.stitch-honors-grid p {
+  margin: 0;
+}
+
+.stitch-honors-grid p:first-child {
+  color: var(--outline);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-honors-grid p:last-child {
+  margin-top: 0.5rem;
+  font-size: 1.35rem;
+  font-style: italic;
+}
+
+.stitch-publications ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4rem;
+}
+
+.stitch-pub-head {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.stitch-pub-head .material-symbols-outlined {
+  color: var(--outline);
+  font-size: 2.25rem;
+}
+
+.stitch-pub-head p {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-pub-head h4 {
+  margin: 0.35rem 0 0;
+  color: var(--primary);
+  font-size: 1.7rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.stitch-pub-body {
+  padding-left: 3.75rem;
+}
+
+.stitch-pub-body p {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.stitch-pub-body div {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stitch-pub-body a {
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid rgba(105, 0, 25, 0.2);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding-bottom: 0.25rem;
+}
+
+.stitch-pub-body a:hover {
+  border-bottom-color: var(--primary);
+}
+
+.stitch-loadmore {
+  margin-top: 5rem;
+}
+
+.stitch-loadmore button {
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  padding: 1rem 2.5rem;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.stitch-loadmore button:hover {
+  background: #8a1b2d;
+}
+
+.stitch-footer {
+  margin-top: 8rem;
+  background: var(--surface-container);
+}
+
+.stitch-footer-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 3rem 6rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.stitch-footer-inner > div:first-child > div {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-footer-inner > div:first-child > p {
+  margin-top: 1rem;
+  max-width: 22rem;
+  color: #64748b;
+  font-size: 1rem;
+  font-style: italic;
+}
+
+.stitch-footer-links {
+  display: flex;
+  gap: 4rem;
+}
+
+.stitch-footer-links p:first-child {
+  margin: 0 0 1rem;
+  color: var(--primary);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stitch-footer-links nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stitch-footer-links a,
+.stitch-footer-links > div:last-child p:last-child {
+  color: #64748b;
+  font-style: italic;
+  text-decoration: none;
+}
+
+.stitch-footer-links a:hover {
+  color: var(--primary);
+}
+
+.stitch-copyright {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2rem 6rem;
+  border-top: 1px solid rgba(139, 113, 113, 0.1);
+  color: #64748b;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 1024px) {
+  .stitch-workspace {
+    padding: 12px;
+  }
+
+  .stitch-topnav {
+    display: none;
+  }
+
+  .stitch-sidebar {
+    display: none;
+  }
+
+  .stitch-main {
+    padding: 3rem 1.5rem;
+    gap: 5rem;
+  }
+
+  .stitch-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stitch-hero,
+  .stitch-split {
+    grid-template-columns: 1fr;
+  }
+
+  .stitch-hero-media,
+  .stitch-hero-copy,
+  .stitch-split > div:first-child,
+  .stitch-split > div:last-child {
+    grid-column: auto;
+  }
+
+  .stitch-contact-grid,
+  .stitch-honors-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stitch-honors {
+    padding: 2rem 1.25rem;
+  }
+
+  .stitch-pub-body {
+    padding-left: 0;
+  }
+
+  .stitch-footer-inner,
+  .stitch-copyright {
+    padding: 2rem 1.5rem;
+  }
+
+  .stitch-footer-inner {
+    flex-direction: column;
+  }
+
+  .stitch-footer-links {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .stitch-window-body {
+    max-height: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import fc from 'fast-check';
 import { COMPONENT_SCHEMAS, ComponentRegistry, componentRegistry } from './componentSchemas';
 import type { ComponentType } from '@/types/canvas';
 
@@ -64,6 +65,35 @@ describe('Component Schemas', () => {
           expect(prop.arrayItemSchema!.length).toBeGreaterThan(0);
         });
       });
+    });
+
+    it('Property 4: Component library completeness', () => {
+      const expectedTypes: ComponentType[] = [
+        'GeneralInfo',
+        'PublicationsCarousel',
+        'PublicationsList',
+        'ResearchAreasGrid',
+        'TeachingTimeline',
+        'ImageGallery',
+        'ExternalLinksBar',
+        'ContactCard',
+        'EducationSection',
+        'BioSection',
+      ];
+
+      fc.assert(
+        fc.property(fc.constantFrom(...expectedTypes), (componentType) => {
+          const schema = COMPONENT_SCHEMAS[componentType];
+
+          expect(schema).toBeDefined();
+          expect(schema.type).toBe(componentType);
+          expect(schema.displayName.length).toBeGreaterThan(0);
+          expect(schema.description.length).toBeGreaterThan(0);
+          expect(Object.keys(schema.defaultProps).length).toBeGreaterThan(0);
+          expect(schema.propDefinitions.length).toBeGreaterThan(0);
+        }),
+        { numRuns: 120 }
+      );
     });
   });
 

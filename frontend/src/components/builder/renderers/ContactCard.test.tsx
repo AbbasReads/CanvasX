@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
+import fc from 'fast-check';
 import { ContactCardRenderer } from './index';
 import type { CanvasElement } from '@/contexts/BuilderContext';
 
@@ -186,5 +187,77 @@ describe('ContactCardRenderer', () => {
 
     // Check that office hours text is present
     expect(screen.getByText(/Monday: 2-4pm/)).toBeInTheDocument();
+  });
+
+  it('Property 31: Contact card renders only provided fields', () => {
+    fc.assert(
+      fc.property(
+        fc.boolean(),
+        fc.boolean(),
+        fc.boolean(),
+        fc.boolean(),
+        fc.boolean(),
+        (includeEmail, includeOffice, includePhone, includeHours, showIcons) => {
+          cleanup();
+
+          const email = includeEmail ? 'professor@university.edu' : '';
+          const officeLocation = includeOffice ? 'Room 301, Science Building' : '';
+          const phoneNumber = includePhone ? '+1-555-0123' : '';
+          const officeHours = includeHours ? 'Monday 2-4pm' : '';
+
+          const element: CanvasElement = {
+            id: 'property-contact',
+            type: 'ContactCard',
+            label: 'Contact Card',
+            props: {
+              email,
+              officeLocation,
+              phoneNumber,
+              officeHours,
+              showIcons,
+            },
+            position: { x: 0, y: 0 },
+            size: { width: 400, height: 300 },
+          };
+
+          const { unmount } = renderComponent(element);
+
+          const noFields = !includeEmail && !includeOffice && !includePhone && !includeHours;
+          if (noFields) {
+            expect(screen.getByText('Add contact information to display')).toBeInTheDocument();
+          } else {
+            expect(screen.queryByText('Add contact information to display')).not.toBeInTheDocument();
+
+            if (includeEmail) {
+              expect(screen.getByText(email)).toBeInTheDocument();
+            } else {
+              expect(screen.queryByText('Email')).not.toBeInTheDocument();
+            }
+
+            if (includeOffice) {
+              expect(screen.getByText(officeLocation)).toBeInTheDocument();
+            } else {
+              expect(screen.queryByText('Office')).not.toBeInTheDocument();
+            }
+
+            if (includePhone) {
+              expect(screen.getByText(phoneNumber)).toBeInTheDocument();
+            } else {
+              expect(screen.queryByText('Phone')).not.toBeInTheDocument();
+            }
+
+            if (includeHours) {
+              expect(screen.getByText(officeHours)).toBeInTheDocument();
+            } else {
+              expect(screen.queryByText('Office Hours')).not.toBeInTheDocument();
+            }
+          }
+
+          unmount();
+          cleanup();
+        }
+      ),
+      { numRuns: 120 }
+    );
   });
 });
