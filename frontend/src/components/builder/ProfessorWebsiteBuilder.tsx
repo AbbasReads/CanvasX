@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import './ProfessorWebsiteBuilder.css';
+import templateStyles from './ProfessorWebsiteBuilder.css?raw';
 
 type PublicationItem = {
   meta: string;
@@ -130,12 +131,18 @@ function escapeHtml(value: string): string {
 }
 
 function buildTemplateHtml(data: TemplateData): string {
+  const sideNavTargets = ['biography', 'honors', 'publications', 'press'];
+  const sideNavIcons = ['person', 'military_tech', 'menu_book', 'newspaper'];
+
   const topNav = data.topNav
     .map((item) => `            <a href="#">${escapeHtml(item)}</a>`)
     .join('\n');
 
   const sideNav = data.sideNav
-    .map((item, index) => `            <a href="#${index === 0 ? 'biography' : index === 1 ? 'honors' : index === 2 ? 'publications' : 'press'}">${escapeHtml(item)}</a>`)
+    .map(
+      (item, index) =>
+        `            <a${index === 0 ? ' class="active"' : ''} href="#${sideNavTargets[index] || 'biography'}" data-target="${sideNavTargets[index] || 'biography'}"><span class="material-symbols-outlined">${sideNavIcons[index] || 'person'}</span>${escapeHtml(item)}</a>`
+    )
     .join('\n');
 
   const chips = data.chips.map((chip) => `            <span>${escapeHtml(chip)}</span>`).join('\n');
@@ -181,7 +188,9 @@ ${links}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(data.brand)}</title>
-    <link rel="stylesheet" href="ProfessorWebsiteBuilder.css" />
+    <style>
+${templateStyles}
+    </style>
   </head>
   <body>
     <div class="stitch-page">
@@ -202,7 +211,7 @@ ${topNav}
             <p>${escapeHtml(data.sideTitle)}</p>
             <p>${escapeHtml(data.sideSubtitle)}</p>
           </div>
-          <nav class="stitch-sidenav">
+          <nav class="stitch-sidenav" aria-label="Section navigation">
 ${sideNav}
           </nav>
         </aside>
@@ -322,6 +331,49 @@ ${resourceLinks}
         <div class="stitch-copyright">${escapeHtml(data.copyright)}</div>
       </footer>
     </div>
+
+    <script>
+      (() => {
+        const links = Array.from(document.querySelectorAll('.stitch-sidenav a[data-target]'));
+        const sections = links
+          .map((link) => document.getElementById(link.getAttribute('data-target') || ''))
+          .filter((section) => section instanceof HTMLElement);
+
+        if (!links.length || !sections.length) return;
+
+        const setActive = (id) => {
+          links.forEach((link) => {
+            const isActive = link.getAttribute('data-target') === id;
+            link.classList.toggle('active', isActive);
+          });
+        };
+
+        links.forEach((link) => {
+          link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const targetId = link.getAttribute('data-target');
+            if (!targetId) return;
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActive(targetId);
+          });
+        });
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+            if (!visible.length) return;
+            setActive(visible[0].target.id);
+          },
+          { threshold: [0.2, 0.4, 0.6, 0.8], rootMargin: '-15% 0px -45% 0px' }
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      })();
+    </script>
   </body>
 </html>`;
 }
