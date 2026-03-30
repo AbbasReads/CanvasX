@@ -565,6 +565,31 @@
   font-style: italic;
 }
 
+.stitch-add-btn {
+  margin-top: 2rem;
+  border: 1px dashed rgba(105, 0, 25, 0.35);
+  background: rgba(105, 0, 25, 0.03);
+  color: var(--primary);
+  padding: 0.7rem 1rem;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.stitch-add-btn:hover {
+  background: rgba(105, 0, 25, 0.08);
+}
+
+.stitch-add-btn .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
 .stitch-publications ul {
   list-style: none;
   margin: 0;
@@ -638,6 +663,10 @@
 
 .stitch-loadmore {
   margin-top: 5rem;
+}
+
+.stitch-article-actions {
+  margin-top: 1rem;
 }
 
 .stitch-loadmore button {

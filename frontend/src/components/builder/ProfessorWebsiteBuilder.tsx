@@ -370,6 +370,7 @@ export function ProfessorWebsiteBuilder() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState('biography');
   const windowBodyRef = useRef<HTMLDivElement | null>(null);
+  const articleStartIndex = 2;
 
   const templateCode = useMemo(() => buildTemplateHtml(data), [data]);
 
@@ -432,6 +433,44 @@ export function ProfessorWebsiteBuilder() {
     };
     reader.readAsDataURL(file);
     event.currentTarget.value = '';
+  };
+
+  const addHonorItem = () => {
+    setData((prev) => ({
+      ...prev,
+      honorsItems: [...prev.honorsItems, { year: 'YYYY', title: 'New honor title' }],
+    }));
+  };
+
+  const addPublicationItem = () => {
+    setData((prev) => {
+      const nextPublications = [...prev.publications];
+      nextPublications.splice(Math.min(articleStartIndex, nextPublications.length), 0, {
+        meta: 'Journal Name • Year',
+        title: 'New publication title',
+        citation: 'Author, A. (Year). Citation details.',
+        links: ['PDF'],
+      });
+      return {
+        ...prev,
+        publications: nextPublications,
+      };
+    });
+  };
+
+  const addArticleItem = () => {
+    setData((prev) => ({
+      ...prev,
+      publications: [
+        ...prev.publications,
+        {
+          meta: 'Article & Press • Year',
+          title: 'New article headline',
+          citation: 'Publication outlet and details.',
+          links: ['Read Article'],
+        },
+      ],
+    }));
   };
 
   return (
@@ -649,6 +688,12 @@ export function ProfessorWebsiteBuilder() {
                           </div>
                         ))}
                       </div>
+                      {isEditMode && (
+                        <button type="button" className="stitch-add-btn" onClick={addHonorItem}>
+                          <span className="material-symbols-outlined">add</span>
+                          Add Honor
+                        </button>
+                      )}
                     </div>
                   </div>
                 </section>
@@ -661,7 +706,7 @@ export function ProfessorWebsiteBuilder() {
                     <div>
                       <ul>
                         {data.publications.map((item, index) => (
-                          <li key={`pub-${index}`} id={index === 2 ? 'press' : undefined}>
+                          <li key={`pub-${index}`}>
                             <div className="stitch-pub-head">
                               <span className="material-symbols-outlined">menu_book</span>
                               <div>
@@ -736,6 +781,20 @@ export function ProfessorWebsiteBuilder() {
                           </li>
                         ))}
                       </ul>
+                      {isEditMode && (
+                        <button type="button" className="stitch-add-btn" onClick={addPublicationItem}>
+                          <span className="material-symbols-outlined">add</span>
+                          Add Publication
+                        </button>
+                      )}
+                      <div className="stitch-article-actions" id="press">
+                        {isEditMode && (
+                          <button type="button" className="stitch-add-btn" onClick={addArticleItem}>
+                            <span className="material-symbols-outlined">add</span>
+                            Add Article
+                          </button>
+                        )}
+                      </div>
                       <div className="stitch-loadmore">
                         <button type="button">
                           <EditableText
