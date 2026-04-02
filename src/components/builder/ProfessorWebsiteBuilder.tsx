@@ -1,16 +1,22 @@
 import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import './ProfessorWebsiteBuilder.css';
 
+type LinkItem = {
+  label: string;
+  href: string;
+};
+
 type PublicationItem = {
   meta: string;
   title: string;
   citation: string;
-  links: string[];
+  links: LinkItem[];
 };
 
 type TemplateData = {
   brand: string;
-  topNav: string[];
+  topNav: LinkItem[];
+  cvHref: string;
   cvButton: string;
   sideTitle: string;
   sideSubtitle: string;
@@ -43,7 +49,7 @@ type TemplateData = {
   footerBrand: string;
   footerTagline: string;
   resourcesTitle: string;
-  resourceLinks: string[];
+  resourceLinks: LinkItem[];
   contactTitle: string;
   contactLine1: string;
   contactLine2: string;
@@ -53,7 +59,12 @@ type TemplateData = {
 
 const INITIAL_DATA: TemplateData = {
   brand: 'Professor Jane Doe',
-  topNav: ['Contact', 'Department', 'Research Lab'],
+  topNav: [
+    { label: 'Contact', href: '#contact' },
+    { label: 'Department', href: 'https://www.mit.edu/' },
+    { label: 'Research Lab', href: 'https://www.nber.org/' },
+  ],
+  cvHref: '#',
   cvButton: 'Download CV',
   sideTitle: 'Navigation',
   sideSubtitle: 'Academic Portfolio',
@@ -91,19 +102,25 @@ const INITIAL_DATA: TemplateData = {
       meta: 'Journal of Monetary Systems • 2023',
       title: 'The Volatility of Perception: How Social Sentiment Predicts Market Floor Collapse',
       citation: 'Doe, J., Smith, R., & Tan, L. (2023). Volume 42, Issue 4, pp. 210-245.',
-      links: ['PDF Abstract', 'View Publisher Site'],
+      links: [
+        { label: 'PDF Abstract', href: '#' },
+        { label: 'View Publisher Site', href: 'https://example.com/publisher' },
+      ],
     },
     {
       meta: 'Oxford Academic Press • 2021',
       title: 'Structural Anchors: Rebuilding Post-Crisis Fiscal Policies in Emerging Markets',
       citation: 'Doe, J. (2021). Monograph Series on Global Governance, 14th Ed.',
-      links: ['Full Text Access'],
+      links: [{ label: 'Full Text Access', href: '#' }],
     },
     {
       meta: 'The Quarterly Review of Economics • 2020',
       title: 'Micro-Loans and Macro-Growth: A Longitudinal Study on Urban Credit Unions',
       citation: 'Chen, Y. & Doe, J. (2020). Vol 88, pp. 45-67.',
-      links: ['Data Sets', 'Abstract'],
+      links: [
+        { label: 'Data Sets', href: '#' },
+        { label: 'Abstract', href: '#' },
+      ],
     },
   ],
   loadMoreLabel: 'Load More Publications',
@@ -111,7 +128,11 @@ const INITIAL_DATA: TemplateData = {
   footerTagline:
     'Devoted to the pursuit of knowledge and the rigorous examination of our global financial ecosystems.',
   resourcesTitle: 'Resources',
-  resourceLinks: ['Institutional Privacy', 'Accessibility', 'Directory'],
+  resourceLinks: [
+    { label: 'Institutional Privacy', href: '#' },
+    { label: 'Accessibility', href: '#' },
+    { label: 'Directory', href: '#' },
+  ],
   contactTitle: 'Contact',
   contactLine1: 'Cambridge, Massachusetts',
   contactLine2: 'United States of America',
@@ -129,40 +150,108 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#039;');
 }
 
+function sanitizeUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return '#';
+  if (trimmed.startsWith('#') || trimmed.startsWith('/') || trimmed.startsWith('mailto:') || trimmed.startsWith('tel:')) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return trimmed;
+    }
+  } catch {
+    return '#';
+  }
+
+  return '#';
+}
+
+function sanitizeRichText(value: string): string {
+  if (!value) return '';
+
+  const template = document.createElement('template');
+  template.innerHTML = value;
+
+  const sanitizeNode = (node: Node): string => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return escapeHtml(node.textContent || '');
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return '';
+    }
+
+    const element = node as HTMLElement;
+    const tag = element.tagName.toLowerCase();
+    const children = Array.from(element.childNodes).map(sanitizeNode).join('');
+
+    if (tag === 'br') return '<br />';
+    if (tag === 'strong' || tag === 'b') return `<strong>${children}</strong>`;
+    if (tag === 'em' || tag === 'i') return `<em>${children}</em>`;
+    if (tag === 'u') return `<u>${children}</u>`;
+    if (tag === 'a') {
+      return `<a href="${escapeHtml(sanitizeUrl(element.getAttribute('href') || '#'))}">${children}</a>`;
+    }
+    if (tag === 'div' || tag === 'p') {
+      return children ? `${children}<br />` : '';
+    }
+
+    return children;
+  };
+
+  return Array.from(template.content.childNodes)
+    .map(sanitizeNode)
+    .join('')
+    .replace(/(<br \/>)+$/g, '');
+}
+
+function getLinkHref(href: string): string {
+  return sanitizeUrl(href);
+}
+
+function renderRichText(value: string): string {
+  return sanitizeRichText(value);
+}
+
 function buildTemplateHtml(data: TemplateData): string {
   const topNav = data.topNav
-    .map((item) => `            <a href="#">${escapeHtml(item)}</a>`)
+    .map((item) => `            <a href="${escapeHtml(getLinkHref(item.href))}">${renderRichText(item.label)}</a>`)
     .join('\n');
 
   const sideNav = data.sideNav
-    .map((item, index) => `            <a href="#${index === 0 ? 'biography' : index === 1 ? 'honors' : index === 2 ? 'publications' : 'press'}">${escapeHtml(item)}</a>`)
+    .map((item, index) => `            <a href="#${index === 0 ? 'biography' : index === 1 ? 'honors' : index === 2 ? 'publications' : 'press'}">${renderRichText(item)}</a>`)
     .join('\n');
 
-  const chips = data.chips.map((chip) => `            <span>${escapeHtml(chip)}</span>`).join('\n');
+  const chips = data.chips.map((chip) => `            <span>${renderRichText(chip)}</span>`).join('\n');
 
   const honors = data.honorsItems
     .map(
       (item) => `                  <div>
-                    <p>${escapeHtml(item.year)}</p>
-                    <p>${escapeHtml(item.title)}</p>
+                    <p>${renderRichText(item.year)}</p>
+                    <p>${renderRichText(item.title)}</p>
                   </div>`
     )
     .join('\n');
 
   const publications = data.publications
     .map((item, index) => {
-      const links = item.links.map((link) => `                        <a href="#">${escapeHtml(link)}</a>`).join('\n');
+      const links = item.links
+        .map((link) => `                        <a href="${escapeHtml(getLinkHref(link.href))}">${renderRichText(link.label)}</a>`)
+        .join('\n');
       const idAttr = index === 2 ? ' id="press"' : '';
       return `                  <li${idAttr}>
                     <div class="stitch-pub-head">
                       <span class="material-symbols-outlined">menu_book</span>
                       <div>
-                        <p>${escapeHtml(item.meta)}</p>
-                        <h4>${escapeHtml(item.title)}</h4>
+                        <p>${renderRichText(item.meta)}</p>
+                        <h4>${renderRichText(item.title)}</h4>
                       </div>
                     </div>
                     <div class="stitch-pub-body">
-                      <p>${escapeHtml(item.citation)}</p>
+                      <p>${renderRichText(item.citation)}</p>
                       <div>
 ${links}
                       </div>
@@ -172,7 +261,7 @@ ${links}
     .join('\n');
 
   const resourceLinks = data.resourceLinks
-    .map((item) => `                <a href="#">${escapeHtml(item)}</a>`)
+    .map((item) => `                <a href="${escapeHtml(getLinkHref(item.href))}">${renderRichText(item.label)}</a>`)
     .join('\n');
 
   return `<!doctype html>
@@ -187,10 +276,10 @@ ${links}
     <div class="stitch-page">
       <header class="stitch-topbar">
         <div class="stitch-topbar-inner">
-          <div class="stitch-brand">${escapeHtml(data.brand)}</div>
+          <div class="stitch-brand">${renderRichText(data.brand)}</div>
           <nav class="stitch-topnav">
 ${topNav}
-            <button type="button">${escapeHtml(data.cvButton)}</button>
+            <a class="stitch-topnav-cta" href="${escapeHtml(getLinkHref(data.cvHref))}">${renderRichText(data.cvButton)}</a>
           </nav>
         </div>
         <div class="stitch-divider"></div>
@@ -199,8 +288,8 @@ ${topNav}
       <div class="stitch-layout">
         <aside class="stitch-sidebar">
           <div class="stitch-sidebar-head">
-            <p>${escapeHtml(data.sideTitle)}</p>
-            <p>${escapeHtml(data.sideSubtitle)}</p>
+            <p>${renderRichText(data.sideTitle)}</p>
+            <p>${renderRichText(data.sideSubtitle)}</p>
           </div>
           <nav class="stitch-sidenav">
 ${sideNav}
@@ -216,24 +305,24 @@ ${sideNav}
             </div>
             <div class="stitch-hero-copy">
               <div>
-                <h1>${escapeHtml(data.profileName)}</h1>
-                <p>${escapeHtml(data.profileTitle)}</p>
+                <h1>${renderRichText(data.profileName)}</h1>
+                <p>${renderRichText(data.profileTitle)}</p>
               </div>
               <div class="stitch-contact-grid">
                 <div>
                   <div class="stitch-contact-row">
                     <span class="material-symbols-outlined">location_on</span>
                     <div>
-                      <p>${escapeHtml(data.officeLabel)}</p>
-                      <p>${escapeHtml(data.officeLine1)}</p>
-                      <p>${escapeHtml(data.officeLine2)}</p>
+                      <p>${renderRichText(data.officeLabel)}</p>
+                      <p>${renderRichText(data.officeLine1)}</p>
+                      <p>${renderRichText(data.officeLine2)}</p>
                     </div>
                   </div>
                   <div class="stitch-contact-row">
                     <span class="material-symbols-outlined">mail</span>
                     <div>
-                      <p>${escapeHtml(data.emailLabel)}</p>
-                      <p>${escapeHtml(data.email)}</p>
+                      <p>${renderRichText(data.emailLabel)}</p>
+                      <p>${renderRichText(data.email)}</p>
                     </div>
                   </div>
                 </div>
@@ -241,15 +330,15 @@ ${sideNav}
                   <div class="stitch-contact-row">
                     <span class="material-symbols-outlined">call</span>
                     <div>
-                      <p>${escapeHtml(data.phoneLabel)}</p>
-                      <p>${escapeHtml(data.phone)}</p>
+                      <p>${renderRichText(data.phoneLabel)}</p>
+                      <p>${renderRichText(data.phone)}</p>
                     </div>
                   </div>
                   <div class="stitch-contact-row">
                     <span class="material-symbols-outlined">language</span>
                     <div>
-                      <p>${escapeHtml(data.webLabel)}</p>
-                      <p>${escapeHtml(data.web)}</p>
+                      <p>${renderRichText(data.webLabel)}</p>
+                      <p>${renderRichText(data.web)}</p>
                     </div>
                   </div>
                 </div>
@@ -262,21 +351,21 @@ ${sideNav}
 ${chips}
             </div>
             <div class="stitch-split">
-              <div><h2>${escapeHtml(data.biographyTitle)}</h2></div>
+              <div><h2>${renderRichText(data.biographyTitle)}</h2></div>
               <div>
-                <p>${escapeHtml(data.biographyP1)}</p>
-                <p>${escapeHtml(data.biographyP2)}</p>
+                <p>${renderRichText(data.biographyP1)}</p>
+                <p>${renderRichText(data.biographyP2)}</p>
               </div>
             </div>
           </section>
 
           <section class="stitch-honors" id="honors">
             <div class="stitch-split">
-              <div><h2>${escapeHtml(data.honorsTitle)}</h2></div>
+              <div><h2>${renderRichText(data.honorsTitle)}</h2></div>
               <div>
-                <span class="stitch-eyebrow">${escapeHtml(data.honorsEyebrow)}</span>
-                <h3>${escapeHtml(data.honorsLeadStart)} <span>${escapeHtml(data.honorsLeadEmphasis)}</span>${escapeHtml(data.honorsLeadEnd)}</h3>
-                <button type="button" class="stitch-inline-btn">${escapeHtml(data.honorsReadMore)}</button>
+                <span class="stitch-eyebrow">${renderRichText(data.honorsEyebrow)}</span>
+                <h3>${renderRichText(data.honorsLeadStart)} <span>${renderRichText(data.honorsLeadEmphasis)}</span>${renderRichText(data.honorsLeadEnd)}</h3>
+                <button type="button" class="stitch-inline-btn">${renderRichText(data.honorsReadMore)}</button>
                 <div class="stitch-honors-grid">
 ${honors}
                 </div>
@@ -286,13 +375,13 @@ ${honors}
 
           <section class="stitch-publications" id="publications">
             <div class="stitch-split">
-              <div><h2>${escapeHtml(data.publicationsTitle)}</h2></div>
+              <div><h2>${renderRichText(data.publicationsTitle)}</h2></div>
               <div>
                 <ul>
 ${publications}
                 </ul>
                 <div class="stitch-loadmore">
-                  <button type="button">${escapeHtml(data.loadMoreLabel)}</button>
+                  <button type="button">${renderRichText(data.loadMoreLabel)}</button>
                 </div>
               </div>
             </div>
@@ -303,23 +392,23 @@ ${publications}
       <footer class="stitch-footer">
         <div class="stitch-footer-inner">
           <div>
-            <div>${escapeHtml(data.footerBrand)}</div>
-            <p>${escapeHtml(data.footerTagline)}</p>
+            <div>${renderRichText(data.footerBrand)}</div>
+            <p>${renderRichText(data.footerTagline)}</p>
           </div>
           <div class="stitch-footer-links">
             <div>
-              <p>${escapeHtml(data.resourcesTitle)}</p>
+              <p>${renderRichText(data.resourcesTitle)}</p>
               <nav>
 ${resourceLinks}
               </nav>
             </div>
             <div>
-              <p>${escapeHtml(data.contactTitle)}</p>
-              <p>${escapeHtml(data.contactLine1)}<br />${escapeHtml(data.contactLine2)}</p>
+              <p>${renderRichText(data.contactTitle)}</p>
+              <p>${renderRichText(data.contactLine1)}<br />${renderRichText(data.contactLine2)}</p>
             </div>
           </div>
         </div>
-        <div class="stitch-copyright">${escapeHtml(data.copyright)}</div>
+        <div class="stitch-copyright">${renderRichText(data.copyright)}</div>
       </footer>
     </div>
   </body>
@@ -332,12 +421,14 @@ function EditableText({
   editable,
   className,
   as = 'span',
+  onFocus,
 }: {
   value: string;
   onChange: (next: string) => void;
   editable: boolean;
   className?: string;
   as?: 'span' | 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'a' | 'button' | 'div';
+  onFocus?: (element: HTMLElement) => void;
 }) {
   const ref = useRef<HTMLElement | null>(null);
 
@@ -345,8 +436,9 @@ function EditableText({
     const el = ref.current;
     if (!el) return;
     if (document.activeElement === el) return;
-    if ((el.textContent || '') !== value) {
-      el.textContent = value;
+    const nextHtml = sanitizeRichText(value);
+    if (el.innerHTML !== nextHtml) {
+      el.innerHTML = nextHtml;
     }
   }, [value]);
 
@@ -357,11 +449,44 @@ function EditableText({
     suppressContentEditableWarning: true,
     onInput: (event: React.FormEvent<HTMLElement>) => {
       if (!editable) return;
-      onChange(event.currentTarget.textContent || '');
+      onChange(sanitizeRichText(event.currentTarget.innerHTML || ''));
+    },
+    onFocus: (event: React.FocusEvent<HTMLElement>) => {
+      if (!editable) return;
+      onFocus?.(event.currentTarget);
     },
     dir: 'ltr',
     spellCheck: editable,
   });
+}
+
+function LinkSettings({
+  href,
+  onHrefChange,
+  onRemove,
+  placeholder,
+}: {
+  href: string;
+  onHrefChange: (next: string) => void;
+  onRemove?: () => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="stitch-link-settings">
+      <input
+        type="url"
+        value={href}
+        onChange={(event) => onHrefChange(event.target.value)}
+        placeholder={placeholder || 'https://example.com'}
+        aria-label="Link URL"
+      />
+      {onRemove && (
+        <button type="button" className="stitch-remove-btn" onClick={onRemove}>
+          Remove
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function ProfessorWebsiteBuilder() {
@@ -369,10 +494,17 @@ export function ProfessorWebsiteBuilder() {
   const [leftNavCollapsed, setLeftNavCollapsed] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState('biography');
+  const [activeEditable, setActiveEditable] = useState<HTMLElement | null>(null);
   const windowBodyRef = useRef<HTMLDivElement | null>(null);
   const articleStartIndex = 2;
 
   const templateCode = useMemo(() => buildTemplateHtml(data), [data]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setActiveEditable(null);
+    }
+  }, [isEditMode]);
 
   useEffect(() => {
     const root = windowBodyRef.current;
@@ -449,7 +581,7 @@ export function ProfessorWebsiteBuilder() {
         meta: 'Journal Name • Year',
         title: 'New publication title',
         citation: 'Author, A. (Year). Citation details.',
-        links: ['PDF'],
+        links: [{ label: 'PDF', href: '#' }],
       });
       return {
         ...prev,
@@ -467,10 +599,61 @@ export function ProfessorWebsiteBuilder() {
           meta: 'Article & Press • Year',
           title: 'New article headline',
           citation: 'Publication outlet and details.',
-          links: ['Read Article'],
+          links: [{ label: 'Read Article', href: '#' }],
         },
       ],
     }));
+  };
+
+  const addTopNavLink = () => {
+    setData((prev) => ({
+      ...prev,
+      topNav: [...prev.topNav, { label: 'New Link', href: '#' }],
+    }));
+  };
+
+  const addChip = () => {
+    setData((prev) => ({
+      ...prev,
+      chips: [...prev.chips, 'New Topic'],
+    }));
+  };
+
+  const addPublicationLink = (publicationIndex: number) => {
+    setData((prev) => ({
+      ...prev,
+      publications: prev.publications.map((entry, idx) =>
+        idx === publicationIndex
+          ? {
+              ...entry,
+              links: [...entry.links, { label: 'New Link', href: '#' }],
+            }
+          : entry
+      ),
+    }));
+  };
+
+  const addResourceLink = () => {
+    setData((prev) => ({
+      ...prev,
+      resourceLinks: [...prev.resourceLinks, { label: 'New Resource', href: '#' }],
+    }));
+  };
+
+  const applyTextCommand = (command: 'bold' | 'italic' | 'underline' | 'unlink' | 'createLink') => {
+    if (!activeEditable) return;
+
+    activeEditable.focus();
+
+    if (command === 'createLink') {
+      const url = window.prompt('Enter link URL', 'https://');
+      if (!url) return;
+      document.execCommand('createLink', false, sanitizeUrl(url));
+    } else {
+      document.execCommand(command, false);
+    }
+
+    activeEditable.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
   };
 
   return (
@@ -504,38 +687,96 @@ export function ProfessorWebsiteBuilder() {
             </label>
           </div>
         </div>
+        {isEditMode && (
+          <div className="stitch-format-palette" aria-label="Text formatting palette">
+            <button type="button" className="stitch-format-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => applyTextCommand('bold')}>
+              Bold
+            </button>
+            <button type="button" className="stitch-format-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => applyTextCommand('italic')}>
+              Italic
+            </button>
+            <button type="button" className="stitch-format-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => applyTextCommand('underline')}>
+              Underline
+            </button>
+            <button type="button" className="stitch-format-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => applyTextCommand('createLink')}>
+              Add Link
+            </button>
+            <button type="button" className="stitch-format-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => applyTextCommand('unlink')}>
+              Remove Link
+            </button>
+          </div>
+        )}
 
         <div className="stitch-window-body" ref={windowBodyRef}>
           <div className="stitch-page">
             <header className="stitch-topbar">
               <div className="stitch-topbar-inner">
-                <EditableText editable={isEditMode} value={data.brand} onChange={(next) => setData((prev) => ({ ...prev, brand: next }))} className="stitch-brand" as="div" />
+                <EditableText editable={isEditMode} value={data.brand} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, brand: next }))} className="stitch-brand" as="div" />
                 <nav className="stitch-topnav">
                   {data.topNav.map((item, index) => (
-                    <a key={`top-${index}`} href="#">
-                      <EditableText
-                        editable={isEditMode}
-                        value={item}
-                        onChange={(next) =>
-                          setData((prev) => ({
-                            ...prev,
-                            topNav: prev.topNav.map((entry, idx) => (idx === index ? next : entry)),
-                          }))
-                        }
-                      />
-                    </a>
+                    <div key={`top-${index}`} className="stitch-link-stack">
+                      <a href={getLinkHref(item.href)} onClick={(event) => isEditMode && event.preventDefault()}>
+                        <EditableText
+                          editable={isEditMode}
+                          onFocus={setActiveEditable}
+                          value={item.label}
+                          onChange={(next) =>
+                            setData((prev) => ({
+                              ...prev,
+                              topNav: prev.topNav.map((entry, idx) => (idx === index ? { ...entry, label: next } : entry)),
+                            }))
+                          }
+                        />
+                      </a>
+                      {isEditMode && (
+                        <LinkSettings
+                          href={item.href}
+                          onHrefChange={(next) =>
+                            setData((prev) => ({
+                              ...prev,
+                              topNav: prev.topNav.map((entry, idx) => (idx === index ? { ...entry, href: next } : entry)),
+                            }))
+                          }
+                          onRemove={() =>
+                            setData((prev) => ({
+                              ...prev,
+                              topNav: prev.topNav.filter((_, idx) => idx !== index),
+                            }))
+                          }
+                        />
+                      )}
+                    </div>
                   ))}
-                  <EditableText editable={isEditMode} value={data.cvButton} onChange={(next) => setData((prev) => ({ ...prev, cvButton: next }))} as="button" />
+                  <div className="stitch-link-stack">
+                    <a className="stitch-topnav-cta" href={getLinkHref(data.cvHref)} onClick={(event) => isEditMode && event.preventDefault()}>
+                      <EditableText editable={isEditMode} value={data.cvButton} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, cvButton: next }))} as="span" />
+                    </a>
+                    {isEditMode && (
+                      <LinkSettings
+                        href={data.cvHref}
+                        onHrefChange={(next) => setData((prev) => ({ ...prev, cvHref: next }))}
+                        placeholder="https://example.com/cv.pdf"
+                      />
+                    )}
+                  </div>
                 </nav>
               </div>
               <div className="stitch-divider" />
+              {isEditMode && (
+                <div className="stitch-topnav-actions">
+                  <button type="button" className="stitch-add-btn stitch-add-btn--compact" onClick={addTopNavLink}>
+                    <span className="material-symbols-outlined">add</span>
+                    Add Top Link
+                  </button>
+                </div>
+              )}
             </header>
 
             <div className={`stitch-layout ${leftNavCollapsed ? 'left-nav-collapsed' : ''}`}>
               <aside className="stitch-sidebar">
                 <div className="stitch-sidebar-head">
-                  <EditableText editable={isEditMode} value={data.sideTitle} onChange={(next) => setData((prev) => ({ ...prev, sideTitle: next }))} as="p" />
-                  <EditableText editable={isEditMode} value={data.sideSubtitle} onChange={(next) => setData((prev) => ({ ...prev, sideSubtitle: next }))} as="p" />
+                  <EditableText editable={isEditMode} value={data.sideTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, sideTitle: next }))} as="p" />
+                  <EditableText editable={isEditMode} value={data.sideSubtitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, sideSubtitle: next }))} as="p" />
                 </div>
                 <nav className="stitch-sidenav">
                   {data.sideNav.map((item, index) => (
@@ -550,6 +791,7 @@ export function ProfessorWebsiteBuilder() {
                       </span>
                       <EditableText
                         editable={isEditMode}
+                        onFocus={setActiveEditable}
                         value={item}
                         onChange={(next) =>
                           setData((prev) => ({
@@ -572,24 +814,24 @@ export function ProfessorWebsiteBuilder() {
                   </div>
                   <div className="stitch-hero-copy">
                     <div>
-                      <EditableText editable={isEditMode} value={data.profileName} onChange={(next) => setData((prev) => ({ ...prev, profileName: next }))} as="h1" />
-                      <EditableText editable={isEditMode} value={data.profileTitle} onChange={(next) => setData((prev) => ({ ...prev, profileTitle: next }))} as="p" />
+                      <EditableText editable={isEditMode} value={data.profileName} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, profileName: next }))} as="h1" />
+                      <EditableText editable={isEditMode} value={data.profileTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, profileTitle: next }))} as="p" />
                     </div>
                     <div className="stitch-contact-grid">
                       <div>
                         <div className="stitch-contact-row">
                           <span className="material-symbols-outlined">location_on</span>
                           <div>
-                            <EditableText editable={isEditMode} value={data.officeLabel} onChange={(next) => setData((prev) => ({ ...prev, officeLabel: next }))} as="p" />
-                            <EditableText editable={isEditMode} value={data.officeLine1} onChange={(next) => setData((prev) => ({ ...prev, officeLine1: next }))} as="p" />
-                            <EditableText editable={isEditMode} value={data.officeLine2} onChange={(next) => setData((prev) => ({ ...prev, officeLine2: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.officeLabel} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, officeLabel: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.officeLine1} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, officeLine1: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.officeLine2} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, officeLine2: next }))} as="p" />
                           </div>
                         </div>
                         <div className="stitch-contact-row">
                           <span className="material-symbols-outlined">mail</span>
                           <div>
-                            <EditableText editable={isEditMode} value={data.emailLabel} onChange={(next) => setData((prev) => ({ ...prev, emailLabel: next }))} as="p" />
-                            <EditableText editable={isEditMode} value={data.email} onChange={(next) => setData((prev) => ({ ...prev, email: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.emailLabel} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, emailLabel: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.email} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, email: next }))} as="p" />
                           </div>
                         </div>
                       </div>
@@ -597,15 +839,15 @@ export function ProfessorWebsiteBuilder() {
                         <div className="stitch-contact-row">
                           <span className="material-symbols-outlined">call</span>
                           <div>
-                            <EditableText editable={isEditMode} value={data.phoneLabel} onChange={(next) => setData((prev) => ({ ...prev, phoneLabel: next }))} as="p" />
-                            <EditableText editable={isEditMode} value={data.phone} onChange={(next) => setData((prev) => ({ ...prev, phone: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.phoneLabel} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, phoneLabel: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.phone} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, phone: next }))} as="p" />
                           </div>
                         </div>
                         <div className="stitch-contact-row">
                           <span className="material-symbols-outlined">language</span>
                           <div>
-                            <EditableText editable={isEditMode} value={data.webLabel} onChange={(next) => setData((prev) => ({ ...prev, webLabel: next }))} as="p" />
-                            <EditableText editable={isEditMode} value={data.web} onChange={(next) => setData((prev) => ({ ...prev, web: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.webLabel} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, webLabel: next }))} as="p" />
+                            <EditableText editable={isEditMode} value={data.web} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, web: next }))} as="p" />
                           </div>
                         </div>
                       </div>
@@ -616,26 +858,49 @@ export function ProfessorWebsiteBuilder() {
                 <section className="stitch-biography" id="biography">
                   <div className="stitch-chip-row">
                     {data.chips.map((chip, index) => (
-                      <EditableText
-                        editable={isEditMode}
-                        key={`chip-${index}`}
-                        value={chip}
-                        onChange={(next) =>
-                          setData((prev) => ({
-                            ...prev,
-                            chips: prev.chips.map((entry, idx) => (idx === index ? next : entry)),
-                          }))
-                        }
-                      />
+                      <div key={`chip-${index}`} className="stitch-chip-item">
+                        <EditableText
+                          editable={isEditMode}
+                          onFocus={setActiveEditable}
+                          value={chip}
+                          onChange={(next) =>
+                            setData((prev) => ({
+                              ...prev,
+                              chips: prev.chips.map((entry, idx) => (idx === index ? next : entry)),
+                            }))
+                          }
+                          as="span"
+                        />
+                        {isEditMode && (
+                          <button
+                            type="button"
+                            className="stitch-remove-btn"
+                            onClick={() =>
+                              setData((prev) => ({
+                                ...prev,
+                                chips: prev.chips.filter((_, idx) => idx !== index),
+                              }))
+                            }
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
+                  {isEditMode && (
+                    <button type="button" className="stitch-add-btn stitch-add-btn--compact" onClick={addChip}>
+                      <span className="material-symbols-outlined">add</span>
+                      Add Chip
+                    </button>
+                  )}
                   <div className="stitch-split">
                     <div>
-                      <EditableText editable={isEditMode} value={data.biographyTitle} onChange={(next) => setData((prev) => ({ ...prev, biographyTitle: next }))} as="h2" />
+                      <EditableText editable={isEditMode} value={data.biographyTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, biographyTitle: next }))} as="h2" />
                     </div>
                     <div>
-                      <EditableText editable={isEditMode} value={data.biographyP1} onChange={(next) => setData((prev) => ({ ...prev, biographyP1: next }))} as="p" />
-                      <EditableText editable={isEditMode} value={data.biographyP2} onChange={(next) => setData((prev) => ({ ...prev, biographyP2: next }))} as="p" />
+                      <EditableText editable={isEditMode} value={data.biographyP1} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, biographyP1: next }))} as="p" />
+                      <EditableText editable={isEditMode} value={data.biographyP2} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, biographyP2: next }))} as="p" />
                     </div>
                   </div>
                 </section>
@@ -643,25 +908,26 @@ export function ProfessorWebsiteBuilder() {
                 <section className="stitch-honors" id="honors">
                   <div className="stitch-split">
                     <div>
-                      <EditableText editable={isEditMode} value={data.honorsTitle} onChange={(next) => setData((prev) => ({ ...prev, honorsTitle: next }))} as="h2" />
+                      <EditableText editable={isEditMode} value={data.honorsTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, honorsTitle: next }))} as="h2" />
                     </div>
                     <div>
-                      <EditableText editable={isEditMode} value={data.honorsEyebrow} onChange={(next) => setData((prev) => ({ ...prev, honorsEyebrow: next }))} as="span" className="stitch-eyebrow" />
+                      <EditableText editable={isEditMode} value={data.honorsEyebrow} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, honorsEyebrow: next }))} as="span" className="stitch-eyebrow" />
                       <h3>
-                        <EditableText editable={isEditMode} value={data.honorsLeadStart} onChange={(next) => setData((prev) => ({ ...prev, honorsLeadStart: next }))} />{' '}
-                        <EditableText editable={isEditMode} value={data.honorsLeadEmphasis} onChange={(next) => setData((prev) => ({ ...prev, honorsLeadEmphasis: next }))} as="span" />
-                        <EditableText editable={isEditMode} value={data.honorsLeadEnd} onChange={(next) => setData((prev) => ({ ...prev, honorsLeadEnd: next }))} />
+                        <EditableText editable={isEditMode} value={data.honorsLeadStart} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, honorsLeadStart: next }))} />{' '}
+                        <EditableText editable={isEditMode} value={data.honorsLeadEmphasis} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, honorsLeadEmphasis: next }))} as="span" />
+                        <EditableText editable={isEditMode} value={data.honorsLeadEnd} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, honorsLeadEnd: next }))} />
                       </h3>
                       <button type="button" className="stitch-inline-btn">
-                        <EditableText editable={isEditMode} value={data.honorsReadMore} onChange={(next) => setData((prev) => ({ ...prev, honorsReadMore: next }))} />{' '}
+                        <EditableText editable={isEditMode} value={data.honorsReadMore} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, honorsReadMore: next }))} />{' '}
                         <span className="material-symbols-outlined">arrow_right_alt</span>
                       </button>
                       <div className="stitch-honors-grid">
                         {data.honorsItems.map((item, index) => (
-                          <div key={`honor-${index}`}>
+                          <div key={`honor-${index}`} className="stitch-card-editor">
                             <EditableText
                               value={item.year}
                               editable={isEditMode}
+                              onFocus={setActiveEditable}
                               onChange={(next) =>
                                 setData((prev) => ({
                                   ...prev,
@@ -675,6 +941,7 @@ export function ProfessorWebsiteBuilder() {
                             <EditableText
                               value={item.title}
                               editable={isEditMode}
+                              onFocus={setActiveEditable}
                               onChange={(next) =>
                                 setData((prev) => ({
                                   ...prev,
@@ -685,6 +952,20 @@ export function ProfessorWebsiteBuilder() {
                               }
                               as="p"
                             />
+                            {isEditMode && (
+                              <button
+                                type="button"
+                                className="stitch-remove-btn"
+                                onClick={() =>
+                                  setData((prev) => ({
+                                    ...prev,
+                                    honorsItems: prev.honorsItems.filter((_, idx) => idx !== index),
+                                  }))
+                                }
+                              >
+                                Remove
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -701,18 +982,19 @@ export function ProfessorWebsiteBuilder() {
                 <section className="stitch-publications" id="publications">
                   <div className="stitch-split">
                     <div>
-                      <EditableText editable={isEditMode} value={data.publicationsTitle} onChange={(next) => setData((prev) => ({ ...prev, publicationsTitle: next }))} as="h2" />
+                      <EditableText editable={isEditMode} value={data.publicationsTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, publicationsTitle: next }))} as="h2" />
                     </div>
                     <div>
                       <ul>
                         {data.publications.map((item, index) => (
-                          <li key={`pub-${index}`}>
+                          <li key={`pub-${index}`} id={index === articleStartIndex ? 'press' : undefined}>
                             <div className="stitch-pub-head">
                               <span className="material-symbols-outlined">menu_book</span>
                               <div>
                                 <EditableText
                                   value={item.meta}
                                   editable={isEditMode}
+                                  onFocus={setActiveEditable}
                                   onChange={(next) =>
                                     setData((prev) => ({
                                       ...prev,
@@ -726,6 +1008,7 @@ export function ProfessorWebsiteBuilder() {
                                 <EditableText
                                   value={item.title}
                                   editable={isEditMode}
+                                  onFocus={setActiveEditable}
                                   onChange={(next) =>
                                     setData((prev) => ({
                                       ...prev,
@@ -742,6 +1025,7 @@ export function ProfessorWebsiteBuilder() {
                               <EditableText
                                 value={item.citation}
                                 editable={isEditMode}
+                                onFocus={setActiveEditable}
                                 onChange={(next) =>
                                   setData((prev) => ({
                                     ...prev,
@@ -752,31 +1036,91 @@ export function ProfessorWebsiteBuilder() {
                                 }
                                 as="p"
                               />
-                              <div>
+                              <div className="stitch-link-collection">
                                 {item.links.map((link, linkIndex) => (
-                                  <a key={`link-${index}-${linkIndex}`} href="#">
-                                    <EditableText
-                                      value={link}
-                                      editable={isEditMode}
-                                      onChange={(next) =>
-                                        setData((prev) => ({
-                                          ...prev,
-                                          publications: prev.publications.map((entry, idx) =>
-                                            idx === index
-                                              ? {
-                                                  ...entry,
-                                                  links: entry.links.map((entryLink, entryLinkIndex) =>
-                                                    entryLinkIndex === linkIndex ? next : entryLink
-                                                  ),
-                                                }
-                                              : entry
-                                          ),
-                                        }))
-                                      }
-                                    />
-                                  </a>
+                                  <div key={`link-${index}-${linkIndex}`} className="stitch-link-stack">
+                                    <a href={getLinkHref(link.href)} onClick={(event) => isEditMode && event.preventDefault()}>
+                                      <EditableText
+                                        value={link.label}
+                                        editable={isEditMode}
+                                        onFocus={setActiveEditable}
+                                        onChange={(next) =>
+                                          setData((prev) => ({
+                                            ...prev,
+                                            publications: prev.publications.map((entry, idx) =>
+                                              idx === index
+                                                ? {
+                                                    ...entry,
+                                                    links: entry.links.map((entryLink, entryLinkIndex) =>
+                                                      entryLinkIndex === linkIndex ? { ...entryLink, label: next } : entryLink
+                                                    ),
+                                                  }
+                                                : entry
+                                            ),
+                                          }))
+                                        }
+                                      />
+                                    </a>
+                                    {isEditMode && (
+                                      <LinkSettings
+                                        href={link.href}
+                                        onHrefChange={(next) =>
+                                          setData((prev) => ({
+                                            ...prev,
+                                            publications: prev.publications.map((entry, idx) =>
+                                              idx === index
+                                                ? {
+                                                    ...entry,
+                                                    links: entry.links.map((entryLink, entryLinkIndex) =>
+                                                      entryLinkIndex === linkIndex ? { ...entryLink, href: next } : entryLink
+                                                    ),
+                                                  }
+                                                : entry
+                                            ),
+                                          }))
+                                        }
+                                        onRemove={() =>
+                                          setData((prev) => ({
+                                            ...prev,
+                                            publications: prev.publications.map((entry, idx) =>
+                                              idx === index
+                                                ? {
+                                                    ...entry,
+                                                    links: entry.links.filter((_, entryLinkIndex) => entryLinkIndex !== linkIndex),
+                                                  }
+                                                : entry
+                                            ),
+                                          }))
+                                        }
+                                      />
+                                    )}
+                                  </div>
                                 ))}
                               </div>
+                              {isEditMode && (
+                                <div className="stitch-publication-actions">
+                                  <button
+                                    type="button"
+                                    className="stitch-add-btn stitch-add-btn--compact"
+                                    onClick={() => addPublicationLink(index)}
+                                  >
+                                    <span className="material-symbols-outlined">add</span>
+                                    Add Link
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="stitch-remove-btn"
+                                    onClick={() =>
+                                      setData((prev) => ({
+                                        ...prev,
+                                        publications: prev.publications.filter((_, idx) => idx !== index),
+                                      }))
+                                    }
+                                  >
+                                    Remove Item
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </li>
                         ))}
@@ -787,7 +1131,7 @@ export function ProfessorWebsiteBuilder() {
                           Add Publication
                         </button>
                       )}
-                      <div className="stitch-article-actions" id="press">
+                      <div className="stitch-article-actions">
                         {isEditMode && (
                           <button type="button" className="stitch-add-btn" onClick={addArticleItem}>
                             <span className="material-symbols-outlined">add</span>
@@ -814,40 +1158,66 @@ export function ProfessorWebsiteBuilder() {
             <footer className="stitch-footer">
               <div className="stitch-footer-inner">
                 <div>
-                  <EditableText editable={isEditMode} value={data.footerBrand} onChange={(next) => setData((prev) => ({ ...prev, footerBrand: next }))} as="div" />
-                  <EditableText editable={isEditMode} value={data.footerTagline} onChange={(next) => setData((prev) => ({ ...prev, footerTagline: next }))} as="p" />
+                  <EditableText editable={isEditMode} value={data.footerBrand} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, footerBrand: next }))} as="div" />
+                  <EditableText editable={isEditMode} value={data.footerTagline} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, footerTagline: next }))} as="p" />
                 </div>
                 <div className="stitch-footer-links">
                   <div>
-                    <EditableText editable={isEditMode} value={data.resourcesTitle} onChange={(next) => setData((prev) => ({ ...prev, resourcesTitle: next }))} as="p" />
+                    <EditableText editable={isEditMode} value={data.resourcesTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, resourcesTitle: next }))} as="p" />
                     <nav>
                       {data.resourceLinks.map((item, index) => (
-                        <a key={`resource-${index}`} href="#">
-                          <EditableText
-                            editable={isEditMode}
-                            value={item}
-                            onChange={(next) =>
-                              setData((prev) => ({
-                                ...prev,
-                                resourceLinks: prev.resourceLinks.map((entry, idx) => (idx === index ? next : entry)),
-                              }))
-                            }
-                          />
-                        </a>
+                        <div key={`resource-${index}`} className="stitch-link-stack">
+                          <a href={getLinkHref(item.href)} onClick={(event) => isEditMode && event.preventDefault()}>
+                            <EditableText
+                              editable={isEditMode}
+                              onFocus={setActiveEditable}
+                              value={item.label}
+                              onChange={(next) =>
+                                setData((prev) => ({
+                                  ...prev,
+                                  resourceLinks: prev.resourceLinks.map((entry, idx) => (idx === index ? { ...entry, label: next } : entry)),
+                                }))
+                              }
+                            />
+                          </a>
+                          {isEditMode && (
+                            <LinkSettings
+                              href={item.href}
+                              onHrefChange={(next) =>
+                                setData((prev) => ({
+                                  ...prev,
+                                  resourceLinks: prev.resourceLinks.map((entry, idx) => (idx === index ? { ...entry, href: next } : entry)),
+                                }))
+                              }
+                              onRemove={() =>
+                                setData((prev) => ({
+                                  ...prev,
+                                  resourceLinks: prev.resourceLinks.filter((_, idx) => idx !== index),
+                                }))
+                              }
+                            />
+                          )}
+                        </div>
                       ))}
                     </nav>
+                    {isEditMode && (
+                      <button type="button" className="stitch-add-btn stitch-add-btn--compact" onClick={addResourceLink}>
+                        <span className="material-symbols-outlined">add</span>
+                        Add Resource Link
+                      </button>
+                    )}
                   </div>
                   <div>
-                    <EditableText editable={isEditMode} value={data.contactTitle} onChange={(next) => setData((prev) => ({ ...prev, contactTitle: next }))} as="p" />
+                    <EditableText editable={isEditMode} value={data.contactTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, contactTitle: next }))} as="p" />
                     <p>
-                      <EditableText editable={isEditMode} value={data.contactLine1} onChange={(next) => setData((prev) => ({ ...prev, contactLine1: next }))} />
+                      <EditableText editable={isEditMode} value={data.contactLine1} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, contactLine1: next }))} />
                       <br />
-                      <EditableText editable={isEditMode} value={data.contactLine2} onChange={(next) => setData((prev) => ({ ...prev, contactLine2: next }))} />
+                      <EditableText editable={isEditMode} value={data.contactLine2} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, contactLine2: next }))} />
                     </p>
                   </div>
                 </div>
               </div>
-              <EditableText editable={isEditMode} value={data.copyright} onChange={(next) => setData((prev) => ({ ...prev, copyright: next }))} className="stitch-copyright" as="div" />
+              <EditableText editable={isEditMode} value={data.copyright} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, copyright: next }))} className="stitch-copyright" as="div" />
             </footer>
           </div>
         </div>
