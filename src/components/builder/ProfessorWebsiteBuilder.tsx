@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import './ProfessorWebsiteBuilder.css';
+import rawProfessorWebsiteBuilderCss from './ProfessorWebsiteBuilder.css?raw';
 
 type LinkItem = {
   label: string;
@@ -11,6 +12,17 @@ type PublicationItem = {
   title: string;
   citation: string;
   links: LinkItem[];
+};
+
+type SectionVisibility = {
+  topbar: boolean;
+  sidebar: boolean;
+  hero: boolean;
+  biography: boolean;
+  honors: boolean;
+  publications: boolean;
+  loadMore: boolean;
+  footer: boolean;
 };
 
 type TemplateData = {
@@ -55,7 +67,11 @@ type TemplateData = {
   contactLine2: string;
   copyright: string;
   portraitSrc: string;
+  visibility: SectionVisibility;
 };
+
+const ARTICLE_START_INDEX = 2;
+const TEMPLATE_EXPORT_MARKER = '/* Template export styles */';
 
 const INITIAL_DATA: TemplateData = {
   brand: 'Professor Jane Doe',
@@ -139,6 +155,16 @@ const INITIAL_DATA: TemplateData = {
   copyright: '© 2024 Jane Doe. All rights reserved.',
   portraitSrc:
     'https://lh3.googleusercontent.com/aida-public/AB6AXuC3aqxJRPOMSYncJZsYAgHT_FVEPmu7fBQ591YNgpM5jnv1B9h9JvvZgTacVjHoNTUMRPlw5V9B1J6EEsevcSszpT9PSq0lyhtXCvli2AkQjRv5Bi1PX6ZB0uJAOApgoj_4ArRjTu3jmcGapESTk9xix0sd2EQy8xnv_7Y8UthzCrfcy60_bvTorojSqZ-mwZ4p-hKdGvo6JxXwGp9oEU6p59u5azusz2MUA4s5i38A0KxaFREhg2MgmRahTM8dVgnOic7MD1bi1bY',
+  visibility: {
+    topbar: true,
+    sidebar: true,
+    hero: true,
+    biography: true,
+    honors: true,
+    publications: true,
+    loadMore: true,
+    footer: true,
+  },
 };
 
 function escapeHtml(value: string): string {
@@ -217,12 +243,25 @@ function renderRichText(value: string): string {
 }
 
 function buildTemplateHtml(data: TemplateData): string {
+  const pageClassName = getPageClassName(data.visibility);
+  const layoutClassName = getLayoutClassName(!data.visibility.sidebar);
+  const sideNavItems = [
+    { id: 'biography', label: data.sideNav[0], visible: data.visibility.sidebar && data.visibility.biography },
+    { id: 'honors', label: data.sideNav[1], visible: data.visibility.sidebar && data.visibility.honors },
+    { id: 'publications', label: data.sideNav[2], visible: data.visibility.sidebar && data.visibility.publications },
+    {
+      id: 'press',
+      label: data.sideNav[3],
+      visible: data.visibility.sidebar && data.visibility.publications && data.publications.length > ARTICLE_START_INDEX,
+    },
+  ].filter((item) => item.visible);
+
   const topNav = data.topNav
     .map((item) => `            <a href="${escapeHtml(getLinkHref(item.href))}">${renderRichText(item.label)}</a>`)
     .join('\n');
 
-  const sideNav = data.sideNav
-    .map((item, index) => `            <a href="#${index === 0 ? 'biography' : index === 1 ? 'honors' : index === 2 ? 'publications' : 'press'}">${renderRichText(item)}</a>`)
+  const sideNav = sideNavItems
+    .map((item) => `            <a href="#${item.id}">${renderRichText(item.label)}</a>`)
     .join('\n');
 
   const chips = data.chips.map((chip) => `            <span>${renderRichText(chip)}</span>`).join('\n');
@@ -241,7 +280,7 @@ function buildTemplateHtml(data: TemplateData): string {
       const links = item.links
         .map((link) => `                        <a href="${escapeHtml(getLinkHref(link.href))}">${renderRichText(link.label)}</a>`)
         .join('\n');
-      const idAttr = index === 2 ? ' id="press"' : '';
+      const idAttr = index === ARTICLE_START_INDEX ? ' id="press"' : '';
       return `                  <li${idAttr}>
                     <div class="stitch-pub-head">
                       <span class="material-symbols-outlined">menu_book</span>
@@ -270,11 +309,11 @@ ${links}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(data.brand)}</title>
-    <link rel="stylesheet" href="ProfessorWebsiteBuilder.css" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="stitch-page">
-      <header class="stitch-topbar">
+    <div class="${pageClassName}">
+${data.visibility.topbar ? `      <header class="stitch-topbar">
         <div class="stitch-topbar-inner">
           <div class="stitch-brand">${renderRichText(data.brand)}</div>
           <nav class="stitch-topnav">
@@ -283,10 +322,9 @@ ${topNav}
           </nav>
         </div>
         <div class="stitch-divider"></div>
-      </header>
-
-      <div class="stitch-layout">
-        <aside class="stitch-sidebar">
+      </header>` : ''}
+      <div class="${layoutClassName}">
+${data.visibility.sidebar ? `        <aside class="stitch-sidebar">
           <div class="stitch-sidebar-head">
             <p>${renderRichText(data.sideTitle)}</p>
             <p>${renderRichText(data.sideSubtitle)}</p>
@@ -294,10 +332,9 @@ ${topNav}
           <nav class="stitch-sidenav">
 ${sideNav}
           </nav>
-        </aside>
-
+        </aside>` : ''}
         <main class="stitch-main">
-          <section class="stitch-hero">
+${data.visibility.hero ? `          <section class="stitch-hero">
             <div class="stitch-hero-media">
               <div class="stitch-portrait-frame">
                 <img alt="${escapeHtml(data.profileName)}" src="${escapeHtml(data.portraitSrc)}" />
@@ -344,9 +381,8 @@ ${sideNav}
                 </div>
               </div>
             </div>
-          </section>
-
-          <section class="stitch-biography" id="biography">
+          </section>` : ''}
+${data.visibility.biography ? `          <section class="stitch-biography" id="biography">
             <div class="stitch-chip-row">
 ${chips}
             </div>
@@ -357,9 +393,8 @@ ${chips}
                 <p>${renderRichText(data.biographyP2)}</p>
               </div>
             </div>
-          </section>
-
-          <section class="stitch-honors" id="honors">
+          </section>` : ''}
+${data.visibility.honors ? `          <section class="stitch-honors" id="honors">
             <div class="stitch-split">
               <div><h2>${renderRichText(data.honorsTitle)}</h2></div>
               <div>
@@ -371,25 +406,23 @@ ${honors}
                 </div>
               </div>
             </div>
-          </section>
-
-          <section class="stitch-publications" id="publications">
+          </section>` : ''}
+${data.visibility.publications ? `          <section class="stitch-publications" id="publications">
             <div class="stitch-split">
               <div><h2>${renderRichText(data.publicationsTitle)}</h2></div>
               <div>
                 <ul>
 ${publications}
                 </ul>
-                <div class="stitch-loadmore">
+${data.visibility.loadMore ? `                <div class="stitch-loadmore">
                   <button type="button">${renderRichText(data.loadMoreLabel)}</button>
-                </div>
+                </div>` : ''}
               </div>
             </div>
-          </section>
+          </section>` : ''}
         </main>
       </div>
-
-      <footer class="stitch-footer">
+${data.visibility.footer ? `      <footer class="stitch-footer">
         <div class="stitch-footer-inner">
           <div>
             <div>${renderRichText(data.footerBrand)}</div>
@@ -409,10 +442,37 @@ ${resourceLinks}
           </div>
         </div>
         <div class="stitch-copyright">${renderRichText(data.copyright)}</div>
-      </footer>
+      </footer>` : ''}
     </div>
   </body>
 </html>`;
+}
+
+function buildTemplateCss(rawCss: string): string {
+  const importLines = rawCss.match(/^@import[^;]+;$/gm)?.join('\n') || '';
+  const markerIndex = rawCss.indexOf(TEMPLATE_EXPORT_MARKER);
+
+  if (markerIndex === -1) {
+    return rawCss.trim();
+  }
+
+  const templateStyles = rawCss.slice(markerIndex + TEMPLATE_EXPORT_MARKER.length).trim();
+  return [importLines, templateStyles].filter(Boolean).join('\n\n');
+}
+
+function getPageClassName(visibility: SectionVisibility): string {
+  return [
+    'stitch-page',
+    !visibility.topbar ? 'stitch-page--without-topbar' : '',
+    !visibility.sidebar ? 'stitch-page--without-sidebar' : '',
+    !visibility.footer ? 'stitch-page--without-footer' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function getLayoutClassName(isSidebarCollapsed: boolean): string {
+  return ['stitch-layout', isSidebarCollapsed ? 'left-nav-collapsed' : ''].filter(Boolean).join(' ');
 }
 
 function EditableText({
@@ -496,9 +556,32 @@ export function ProfessorWebsiteBuilder() {
   const [activeSectionId, setActiveSectionId] = useState('biography');
   const [activeEditable, setActiveEditable] = useState<HTMLElement | null>(null);
   const windowBodyRef = useRef<HTMLDivElement | null>(null);
-  const articleStartIndex = 2;
 
   const templateCode = useMemo(() => buildTemplateHtml(data), [data]);
+  const templateCss = useMemo(() => buildTemplateCss(rawProfessorWebsiteBuilderCss), []);
+  const pageClassName = getPageClassName(data.visibility);
+  const layoutClassName = getLayoutClassName(leftNavCollapsed || !data.visibility.sidebar);
+  const sideNavItems = [
+    { id: 'biography', label: data.sideNav[0], icon: 'person', visible: data.visibility.biography },
+    { id: 'honors', label: data.sideNav[1], icon: 'military_tech', visible: data.visibility.honors },
+    { id: 'publications', label: data.sideNav[2], icon: 'menu_book', visible: data.visibility.publications },
+    {
+      id: 'press',
+      label: data.sideNav[3],
+      icon: 'newspaper',
+      visible: data.visibility.publications && data.publications.length > ARTICLE_START_INDEX,
+    },
+  ].filter((item) => item.visible);
+  const sectionControls: Array<{ key: keyof SectionVisibility; label: string }> = [
+    { key: 'topbar', label: 'Top Bar' },
+    { key: 'sidebar', label: 'Sidebar' },
+    { key: 'hero', label: 'Hero' },
+    { key: 'biography', label: 'Biography' },
+    { key: 'honors', label: 'Honors' },
+    { key: 'publications', label: 'Publications' },
+    { key: 'loadMore', label: 'Load More' },
+    { key: 'footer', label: 'Footer' },
+  ];
 
   useEffect(() => {
     if (!isEditMode) {
@@ -510,7 +593,7 @@ export function ProfessorWebsiteBuilder() {
     const root = windowBodyRef.current;
     if (!root) return;
 
-    const sectionIds = ['biography', 'honors', 'publications', 'press'];
+    const sectionIds = sideNavItems.map((item) => item.id);
     const elements = sectionIds
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => Boolean(el));
@@ -536,14 +619,7 @@ export function ProfessorWebsiteBuilder() {
 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
-
-  const navTargetIdByIndex = (index: number): string => {
-    if (index === 0) return 'biography';
-    if (index === 1) return 'honors';
-    if (index === 2) return 'publications';
-    return 'press';
-  };
+  }, [sideNavItems]);
 
   const onSideNavClick = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     event.preventDefault();
@@ -656,6 +732,16 @@ export function ProfessorWebsiteBuilder() {
     activeEditable.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
   };
 
+  const toggleVisibility = (key: keyof SectionVisibility) => {
+    setData((prev) => ({
+      ...prev,
+      visibility: {
+        ...prev.visibility,
+        [key]: !prev.visibility[key],
+      },
+    }));
+  };
+
   return (
     <div className="stitch-workspace">
       <div className="stitch-window" role="region" aria-label="Editable website window">
@@ -706,106 +792,131 @@ export function ProfessorWebsiteBuilder() {
             </button>
           </div>
         )}
+        {isEditMode && (
+          <div className="stitch-section-manager" aria-label="Section visibility manager">
+            <span className="stitch-section-manager-label">Elements</span>
+            {sectionControls.map((control) => (
+              <button
+                key={control.key}
+                type="button"
+                className={`stitch-section-toggle ${data.visibility[control.key] ? 'is-visible' : 'is-hidden'}`}
+                onClick={() => toggleVisibility(control.key)}
+              >
+                {data.visibility[control.key] ? `Remove ${control.label}` : `Restore ${control.label}`}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="stitch-window-body" ref={windowBodyRef}>
-          <div className="stitch-page">
-            <header className="stitch-topbar">
-              <div className="stitch-topbar-inner">
-                <EditableText editable={isEditMode} value={data.brand} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, brand: next }))} className="stitch-brand" as="div" />
-                <nav className="stitch-topnav">
-                  {data.topNav.map((item, index) => (
-                    <div key={`top-${index}`} className="stitch-link-stack">
-                      <a href={getLinkHref(item.href)} onClick={(event) => isEditMode && event.preventDefault()}>
-                        <EditableText
-                          editable={isEditMode}
-                          onFocus={setActiveEditable}
-                          value={item.label}
-                          onChange={(next) =>
-                            setData((prev) => ({
-                              ...prev,
-                              topNav: prev.topNav.map((entry, idx) => (idx === index ? { ...entry, label: next } : entry)),
-                            }))
-                          }
-                        />
+          <div className={pageClassName}>
+            {data.visibility.topbar && (
+              <header className="stitch-topbar">
+                <div className="stitch-topbar-inner">
+                  <EditableText editable={isEditMode} value={data.brand} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, brand: next }))} className="stitch-brand" as="div" />
+                  <nav className="stitch-topnav">
+                    {data.topNav.map((item, index) => (
+                      <div key={`top-${index}`} className="stitch-link-stack">
+                        <a href={getLinkHref(item.href)} onClick={(event) => isEditMode && event.preventDefault()}>
+                          <EditableText
+                            editable={isEditMode}
+                            onFocus={setActiveEditable}
+                            value={item.label}
+                            onChange={(next) =>
+                              setData((prev) => ({
+                                ...prev,
+                                topNav: prev.topNav.map((entry, idx) => (idx === index ? { ...entry, label: next } : entry)),
+                              }))
+                            }
+                          />
+                        </a>
+                        {isEditMode && (
+                          <LinkSettings
+                            href={item.href}
+                            onHrefChange={(next) =>
+                              setData((prev) => ({
+                                ...prev,
+                                topNav: prev.topNav.map((entry, idx) => (idx === index ? { ...entry, href: next } : entry)),
+                              }))
+                            }
+                            onRemove={() =>
+                              setData((prev) => ({
+                                ...prev,
+                                topNav: prev.topNav.filter((_, idx) => idx !== index),
+                              }))
+                            }
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <div className="stitch-link-stack">
+                      <a className="stitch-topnav-cta" href={getLinkHref(data.cvHref)} onClick={(event) => isEditMode && event.preventDefault()}>
+                        <EditableText editable={isEditMode} value={data.cvButton} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, cvButton: next }))} as="span" />
                       </a>
                       {isEditMode && (
                         <LinkSettings
-                          href={item.href}
-                          onHrefChange={(next) =>
-                            setData((prev) => ({
-                              ...prev,
-                              topNav: prev.topNav.map((entry, idx) => (idx === index ? { ...entry, href: next } : entry)),
-                            }))
-                          }
-                          onRemove={() =>
-                            setData((prev) => ({
-                              ...prev,
-                              topNav: prev.topNav.filter((_, idx) => idx !== index),
-                            }))
-                          }
+                          href={data.cvHref}
+                          onHrefChange={(next) => setData((prev) => ({ ...prev, cvHref: next }))}
+                          placeholder="https://example.com/cv.pdf"
                         />
                       )}
                     </div>
-                  ))}
-                  <div className="stitch-link-stack">
-                    <a className="stitch-topnav-cta" href={getLinkHref(data.cvHref)} onClick={(event) => isEditMode && event.preventDefault()}>
-                      <EditableText editable={isEditMode} value={data.cvButton} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, cvButton: next }))} as="span" />
-                    </a>
-                    {isEditMode && (
-                      <LinkSettings
-                        href={data.cvHref}
-                        onHrefChange={(next) => setData((prev) => ({ ...prev, cvHref: next }))}
-                        placeholder="https://example.com/cv.pdf"
-                      />
-                    )}
-                  </div>
-                </nav>
-              </div>
-              <div className="stitch-divider" />
-              {isEditMode && (
-                <div className="stitch-topnav-actions">
-                  <button type="button" className="stitch-add-btn stitch-add-btn--compact" onClick={addTopNavLink}>
-                    <span className="material-symbols-outlined">add</span>
-                    Add Top Link
-                  </button>
+                  </nav>
                 </div>
-              )}
-            </header>
+                <div className="stitch-divider" />
+                {isEditMode && (
+                  <div className="stitch-topnav-actions">
+                    <button type="button" className="stitch-add-btn stitch-add-btn--compact" onClick={addTopNavLink}>
+                      <span className="material-symbols-outlined">add</span>
+                      Add Top Link
+                    </button>
+                  </div>
+                )}
+              </header>
+            )}
 
-            <div className={`stitch-layout ${leftNavCollapsed ? 'left-nav-collapsed' : ''}`}>
-              <aside className="stitch-sidebar">
+            <div className={layoutClassName}>
+              {data.visibility.sidebar && (
+                <aside className="stitch-sidebar">
                 <div className="stitch-sidebar-head">
                   <EditableText editable={isEditMode} value={data.sideTitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, sideTitle: next }))} as="p" />
                   <EditableText editable={isEditMode} value={data.sideSubtitle} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, sideSubtitle: next }))} as="p" />
                 </div>
                 <nav className="stitch-sidenav">
-                  {data.sideNav.map((item, index) => (
+                  {sideNavItems.map((item) => (
                     <a
-                      key={`side-${index}`}
-                      className={activeSectionId === navTargetIdByIndex(index) ? 'active' : undefined}
-                      href={`#${navTargetIdByIndex(index)}`}
-                      onClick={(event) => onSideNavClick(event, navTargetIdByIndex(index))}
+                      key={`side-${item.id}`}
+                      className={activeSectionId === item.id ? 'active' : undefined}
+                      href={`#${item.id}`}
+                      onClick={(event) => onSideNavClick(event, item.id)}
                     >
-                      <span className="material-symbols-outlined">
-                        {index === 0 ? 'person' : index === 1 ? 'military_tech' : index === 2 ? 'menu_book' : 'newspaper'}
-                      </span>
+                      <span className="material-symbols-outlined">{item.icon}</span>
                       <EditableText
                         editable={isEditMode}
                         onFocus={setActiveEditable}
-                        value={item}
+                        value={item.label}
                         onChange={(next) =>
                           setData((prev) => ({
                             ...prev,
-                            sideNav: prev.sideNav.map((entry, idx) => (idx === index ? next : entry)),
+                            sideNav: prev.sideNav.map((entry, idx) =>
+                              (item.id === 'biography' && idx === 0) ||
+                              (item.id === 'honors' && idx === 1) ||
+                              (item.id === 'publications' && idx === 2) ||
+                              (item.id === 'press' && idx === 3)
+                                ? next
+                                : entry
+                            ),
                           }))
                         }
                       />
                     </a>
                   ))}
                 </nav>
-              </aside>
+                </aside>
+              )}
 
               <main className="stitch-main">
+                {data.visibility.hero && (
                 <section className="stitch-hero">
                   <div className="stitch-hero-media">
                     <div className="stitch-portrait-frame">
@@ -854,7 +965,9 @@ export function ProfessorWebsiteBuilder() {
                     </div>
                   </div>
                 </section>
+                )}
 
+                {data.visibility.biography && (
                 <section className="stitch-biography" id="biography">
                   <div className="stitch-chip-row">
                     {data.chips.map((chip, index) => (
@@ -904,7 +1017,9 @@ export function ProfessorWebsiteBuilder() {
                     </div>
                   </div>
                 </section>
+                )}
 
+                {data.visibility.honors && (
                 <section className="stitch-honors" id="honors">
                   <div className="stitch-split">
                     <div>
@@ -978,7 +1093,9 @@ export function ProfessorWebsiteBuilder() {
                     </div>
                   </div>
                 </section>
+                )}
 
+                {data.visibility.publications && (
                 <section className="stitch-publications" id="publications">
                   <div className="stitch-split">
                     <div>
@@ -987,7 +1104,7 @@ export function ProfessorWebsiteBuilder() {
                     <div>
                       <ul>
                         {data.publications.map((item, index) => (
-                          <li key={`pub-${index}`} id={index === articleStartIndex ? 'press' : undefined}>
+                          <li key={`pub-${index}`} id={index === ARTICLE_START_INDEX ? 'press' : undefined}>
                             <div className="stitch-pub-head">
                               <span className="material-symbols-outlined">menu_book</span>
                               <div>
@@ -1139,6 +1256,7 @@ export function ProfessorWebsiteBuilder() {
                           </button>
                         )}
                       </div>
+                      {data.visibility.loadMore && (
                       <div className="stitch-loadmore">
                         <button type="button">
                           <EditableText
@@ -1149,12 +1267,15 @@ export function ProfessorWebsiteBuilder() {
                           <span className="material-symbols-outlined">expand_more</span>
                         </button>
                       </div>
+                      )}
                     </div>
                   </div>
                 </section>
+                )}
               </main>
             </div>
 
+            {data.visibility.footer && (
             <footer className="stitch-footer">
               <div className="stitch-footer-inner">
                 <div>
@@ -1219,14 +1340,21 @@ export function ProfessorWebsiteBuilder() {
               </div>
               <EditableText editable={isEditMode} value={data.copyright} onFocus={setActiveEditable} onChange={(next) => setData((prev) => ({ ...prev, copyright: next }))} className="stitch-copyright" as="div" />
             </footer>
+            )}
           </div>
         </div>
       </div>
 
-      <section className="stitch-code-panel" aria-label="Template code output">
-        <h3>Template HTML (auto-updated)</h3>
-        <textarea value={templateCode} readOnly />
-      </section>
+      <div className="stitch-code-grid">
+        <section className="stitch-code-panel" aria-label="Template HTML output">
+          <h3>Template HTML (auto-updated)</h3>
+          <textarea value={templateCode} readOnly />
+        </section>
+        <section className="stitch-code-panel" aria-label="Template CSS output">
+          <h3>Template CSS (auto-updated)</h3>
+          <textarea value={templateCss} readOnly />
+        </section>
+      </div>
     </div>
   );
 }
