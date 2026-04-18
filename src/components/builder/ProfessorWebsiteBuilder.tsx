@@ -653,7 +653,7 @@ export function ProfessorWebsiteBuilder() {
   const addPublicationItem = () => {
     setData((prev) => {
       const nextPublications = [...prev.publications];
-      nextPublications.splice(Math.min(articleStartIndex, nextPublications.length), 0, {
+      nextPublications.splice(Math.min(ARTICLE_START_INDEX, nextPublications.length), 0, {
         meta: 'Journal Name • Year',
         title: 'New publication title',
         citation: 'Author, A. (Year). Citation details.',
