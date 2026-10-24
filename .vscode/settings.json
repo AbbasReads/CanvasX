@@ -1,2 +1,6 @@
 {
+    "chat.tools.terminal.autoApprove": {
+        "npx vitest": true,
+        "npm run build": true
+    }
 }

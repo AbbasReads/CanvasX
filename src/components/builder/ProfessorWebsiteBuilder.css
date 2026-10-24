@@ -344,20 +344,38 @@
   color: var(--primary);
 }
 
+.stitch-topnav a.stitch-topnav-cta,
 .stitch-topnav-cta {
   border: 0;
   background: var(--primary);
-  color: #fff;
-  padding: 8px 24px;
+  color: #ffffff !important;
+  padding: 8px 18px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   cursor: pointer;
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  transition: all 180ms ease;
+  box-shadow: 0 2px 6px rgba(105, 0, 25, 0.2);
 }
 
+.stitch-topnav a.stitch-topnav-cta:hover,
 .stitch-topnav-cta:hover {
   background: #8a1b2d;
-  color: #fff;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(105, 0, 25, 0.3);
+}
+
+.stitch-topnav-cta .material-symbols-outlined {
+  font-size: 1rem;
+  color: #ffffff !important;
+  line-height: 1;
 }
 
 .stitch-topnav-actions {
@@ -474,9 +492,9 @@
 .stitch-main {
   flex: 1;
   margin-left: 0;
-  padding: 6rem 6rem;
+  padding: 3.5rem 5rem;
   display: grid;
-  gap: 8rem;
+  gap: 3.5rem;
 }
 
 .stitch-hero {
@@ -762,61 +780,79 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 4rem;
-}
-
-.stitch-pub-head {
   display: flex;
-  gap: 1.5rem;
+  flex-direction: column;
+}
+
+.stitch-pub-entry {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.stitch-publications ul li:last-child .stitch-pub-entry {
+  border-bottom: none !important;
+  padding-bottom: 0.5rem;
+}
+
+.stitch-pub-meta {
+  display: flex;
   align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.stitch-pub-head .material-symbols-outlined {
-  color: var(--outline);
-  font-size: 2.25rem;
-}
-
-.stitch-pub-head p {
-  margin: 0;
+.stitch-pub-journal {
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--secondary);
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
 
-.stitch-pub-head h4 {
-  margin: 0.35rem 0 0;
+.stitch-pub-year {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--primary);
-  font-size: 1.7rem;
-  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  border: 1px solid var(--primary);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.stitch-pub-title {
+  margin: 0.4rem 0 0;
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1.35;
   font-weight: 600;
-}
-
-.stitch-pub-body {
-  padding-left: 3.75rem;
-}
-
-.stitch-pub-body p {
-  margin: 1rem 0 0;
-  color: var(--muted);
-  font-size: 1.2rem;
   font-style: italic;
 }
 
-.stitch-pub-body div {
-  margin-top: 1rem;
+.stitch-pub-authors {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem;
+}
+
+.stitch-pub-links {
+  margin-top: 0.75rem;
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .stitch-link-collection {
   align-items: flex-start;
 }
 
+.stitch-pub-links a,
 .stitch-pub-body a {
   text-decoration: none;
   color: var(--text);
@@ -829,9 +865,19 @@
   padding-bottom: 0.25rem;
 }
 
+.stitch-pub-links a:hover,
 .stitch-pub-body a:hover {
   border-bottom-color: var(--primary);
 }
+
+/* Student stats sidebar widget */
+
+
+
+
+
+
+
 
 .stitch-link-stack {
   display: flex;
@@ -873,7 +919,8 @@
 }
 
 .stitch-loadmore {
-  margin-top: 5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
 }
 
 .stitch-article-actions {
@@ -881,23 +928,27 @@
 }
 
 .stitch-loadmore button {
-  border: 0;
-  background: var(--primary);
-  color: #fff;
-  padding: 1rem 2.5rem;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.12em;
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.45rem;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .stitch-loadmore button:hover {
-  background: #8a1b2d;
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(105, 0, 25, 0.2);
 }
 
 .stitch-footer {
@@ -1037,3 +1088,344 @@
     gap: 2rem;
   }
 }
+
+
+/* Full-width publications without wasted space on left */
+.stitch-publications .stitch-split {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stitch-publications .stitch-split > div:first-child {
+  grid-column: span 12;
+  width: 100%;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--outline-variant);
+}
+
+.stitch-publications .stitch-split > div:last-child {
+  grid-column: span 12;
+  width: 100%;
+}
+
+/* Student Advising Tabs & Section - Minimal Academic Style */
+.stitch-students {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.stitch-students-header {
+  margin-bottom: 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.stitch-students-header h2 {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 2.25rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--text);
+}
+
+
+
+
+
+
+
+
+
+
+
+/* Minimalist Underline / Segmented Tabs */
+.stitch-tabs-nav {
+  display: flex;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--outline-variant);
+  margin-bottom: 1.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.stitch-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.65rem 1rem;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.stitch-tab-btn:hover {
+  color: var(--text);
+}
+
+.stitch-tab-btn.is-active,
+.stitch-tab-btn[aria-selected="true"] {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 700;
+}
+
+.stitch-tab-badge {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text);
+  font-size: 0.68rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.stitch-tab-btn.is-active .stitch-tab-badge,
+.stitch-tab-btn[aria-selected="true"] .stitch-tab-badge {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+@keyframes stitch-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stitch-tab-panel {
+  display: none;
+}
+
+.stitch-tab-panel.is-active,
+.stitch-tab-content {
+  display: block;
+  animation: stitch-fade-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Minimalist Advisee List - Clean academic一行 format */
+.stitch-advisee-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stitch-advisee-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  transition: background 0.15s ease;
+}
+
+.stitch-advisee-row:hover {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.stitch-advisee-bullet {
+  color: var(--primary);
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.stitch-advisee-content {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.stitch-advisee-name {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stitch-advisee-name a {
+  color: var(--text);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.stitch-advisee-name a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.stitch-external-icon {
+  font-size: 0.85rem;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.stitch-advisee-year {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.stitch-advisee-sep {
+  color: var(--outline-variant);
+  font-weight: 300;
+}
+
+.stitch-advisee-placement {
+  color: var(--text);
+  font-style: italic;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1rem;
+}
+
+/* Edit Mode: Compact single-row editor */
+.stitch-advisee-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.stitch-advisee-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: 6px;
+}
+
+.stitch-advisee-input {
+  border: 1px solid #d7e2ee;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8rem;
+  color: #0f172a;
+}
+
+.stitch-advisee-input:focus {
+  outline: 2px solid rgba(105, 0, 25, 0.2);
+  border-color: var(--primary);
+}
+
+.stitch-advisee-input--name {
+  flex: 2;
+  min-width: 140px;
+  font-weight: 700;
+}
+
+.stitch-advisee-input--year {
+  flex: 1;
+  min-width: 80px;
+}
+
+.stitch-advisee-input--placement {
+  flex: 3;
+  min-width: 180px;
+}
+
+.stitch-advisee-input--url {
+  flex: 2;
+  min-width: 120px;
+  color: #64748b;
+}
+
+.stitch-advisee-del-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.stitch-advisee-del-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.stitch-advisee-del-btn .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+/* Polished Sidebar Stats Widget */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Polished Publication Action Badges */
+.stitch-pub-links {
+  margin-top: 0.85rem;
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stitch-pub-badge-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: all 0.15s ease;
+}
+
+.stitch-pub-badge-link:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.stitch-pub-badge-link .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
