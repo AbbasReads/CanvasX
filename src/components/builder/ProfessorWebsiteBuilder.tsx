@@ -1,6 +1,9 @@
 import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import './ProfessorWebsiteBuilder.css';
 import rawProfessorWebsiteBuilderCss from './ProfessorWebsiteBuilder.css?raw';
+import { NetlifyHostModal } from './NetlifyHostModal';
+import { AiPublicationModal } from './AiPublicationModal';
+import { downloadPortfolioZip } from '@/lib/netlifyDeploy';
 
 
 type LinkItem = {
@@ -694,25 +697,27 @@ ${resourceLinks}
 
       // 3. ScrollSpy & Smooth Sidenav Active Highlighting (matches preview exactly)
       var sideNavLinks = document.querySelectorAll('.stitch-sidenav a');
-      var sectionElements = Array.from(sideNavLinks).map(function(link) {
-        var id = link.getAttribute('href').replace('#', '');
-        return document.getElementById(id);
-      }).filter(Boolean);
+      var sectionIds = Array.from(sideNavLinks).map(function(link) {
+        return link.getAttribute('href').replace('#', '');
+      });
 
-      if (window.IntersectionObserver && sectionElements.length > 0) {
-        var observer = new IntersectionObserver(function(entries) {
-          entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-              sideNavLinks.forEach(function(link) {
-                var isActive = link.getAttribute('href') === '#' + entry.target.id;
-                link.classList.toggle('active', isActive);
-              });
-            }
-          });
-        }, { rootMargin: '-20% 0px -70% 0px' });
+      var updateActiveNav = function() {
+        var offset = 160;
+        var currentId = sectionIds[0] || '';
+        sectionIds.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top <= offset) {
+            currentId = id;
+          }
+        });
+        sideNavLinks.forEach(function(link) {
+          var id = link.getAttribute('href').replace('#', '');
+          link.classList.toggle('active', id === currentId);
+        });
+      };
 
-        sectionElements.forEach(function(el) { observer.observe(el); });
-      }
+      window.addEventListener('scroll', updateActiveNav, { passive: true });
+      updateActiveNav();
 
       // Smooth scrolling for top navigation links
       document.querySelectorAll('.stitch-topnav a').forEach(function(link) {
@@ -723,7 +728,9 @@ ${resourceLinks}
             var targetEl = document.getElementById(targetId);
             if (targetEl) {
               e.preventDefault();
-              targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              var navOffset = 80;
+              var targetTop = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
+              window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
             }
           });
         }
@@ -736,7 +743,9 @@ ${resourceLinks}
           var targetEl = document.getElementById(targetId);
           if (targetEl) {
             e.preventDefault();
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var navOffset = 80;
+            var targetTop = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
+            window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
             sideNavLinks.forEach(function(l) { l.classList.remove('active'); });
             link.classList.add('active');
           }
@@ -871,6 +880,8 @@ function LinkSettings({
 export function ProfessorWebsiteBuilder() {
   const [data, setData] = useState<TemplateData>(INITIAL_DATA);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isHostModalOpen, setIsHostModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState('biography');
   const [activeEditable, setActiveEditable] = useState<HTMLElement | null>(null);
   const [activeStudentTab, setActiveStudentTab] = useState<string>('phd-alumni');
@@ -982,42 +993,48 @@ export function ProfessorWebsiteBuilder() {
   }, [isEditMode]);
 
   useEffect(() => {
-    const root = windowBodyRef.current;
-    if (!root) return;
-
     const sectionIds = sideNavItems.map((item) => item.id);
-    const elements = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => Boolean(el));
 
-    if (!elements.length) return;
+    const updateActiveSection = () => {
+      const elements = sectionIds
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => Boolean(el));
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+      if (!elements.length) return;
 
-        if (!visible.length) return;
-        const id = visible[0].target.id;
-        if (id) setActiveSectionId(id);
-      },
-      {
-        root,
-        threshold: [0.2, 0.4, 0.6, 0.8],
-        rootMargin: '-15% 0px -45% 0px',
+      const triggerOffset = 180;
+      let activeId = elements[0].id;
+
+      for (const el of elements) {
+        const top = el.getBoundingClientRect().top;
+        if (top <= triggerOffset) {
+          activeId = el.id;
+        }
       }
-    );
 
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+      setActiveSectionId(activeId);
+    };
+
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    updateActiveSection();
+
+    return () => window.removeEventListener('scroll', updateActiveSection);
   }, [sideNavItems]);
 
   const onSideNavClick = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    if (isEditMode) {
+      return;
+    }
     event.preventDefault();
     const target = document.getElementById(sectionId);
     if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const navBarOffset = 80;
+    const targetY = target.getBoundingClientRect().top + window.scrollY - navBarOffset;
+    window.scrollTo({
+      top: Math.max(0, targetY),
+      behavior: 'smooth',
+    });
     setActiveSectionId(sectionId);
   };
 
@@ -1053,6 +1070,18 @@ export function ProfessorWebsiteBuilder() {
         authors: 'Author, A.',
         links: [{ label: 'PDF', href: '#' }],
       });
+      return {
+        ...prev,
+        publications: nextPublications,
+      };
+    });
+  };
+
+  const handleImportAiPublications = (newItems: PublicationItem[]) => {
+    setData((prev) => {
+      const nextPublications = [...prev.publications];
+      // Insert new AI-extracted publications at the top of academic publications
+      nextPublications.unshift(...newItems);
       return {
         ...prev,
         publications: nextPublications,
@@ -1149,13 +1178,43 @@ export function ProfessorWebsiteBuilder() {
     <div className="stitch-workspace">
       <div className="stitch-window" role="region" aria-label="Editable website window">
         <div className="stitch-window-bar">
-          <div className="stitch-window-dots">
-            <span />
-            <span />
-            <span />
+          <div className="stitch-window-brand">
+            <span className="stitch-window-brand-name">CanvasX</span>
           </div>
-          <div className="stitch-window-title">Editable Template Window</div>
           <div className="stitch-window-actions">
+            <button
+              type="button"
+              className="stitch-download-zip-btn"
+              onClick={() =>
+                downloadPortfolioZip(
+                  templateCode,
+                  templateCss,
+                  `${data.profileName.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'academic'}-site.zip`
+                )
+              }
+              title="Download standalone HTML/CSS files bundled as ZIP"
+            >
+              <span className="material-symbols-outlined">download</span>
+              Export ZIP
+            </button>
+            <button
+              type="button"
+              className="stitch-ai-nav-btn"
+              onClick={() => setIsAiModalOpen(true)}
+              title="Import publications automatically from CV/PDF via AI/ML pipeline"
+            >
+              <span className="material-symbols-outlined">auto_awesome</span>
+              AI Publications
+            </button>
+            <button
+              type="button"
+              className="stitch-host-btn"
+              onClick={() => setIsHostModalOpen(true)}
+              title="One-click host your portfolio on Netlify"
+            >
+              <span className="material-symbols-outlined">rocket_launch</span>
+              Host Site
+            </button>
             <button
               type="button"
               className={`stitch-collapse-btn ${isEditMode ? 'is-active' : ''}`}
@@ -1225,7 +1284,9 @@ export function ProfessorWebsiteBuilder() {
                               const targetId = item.href.slice(1);
                               const target = document.getElementById(targetId);
                               if (target) {
-                                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                const navOffset = 80;
+                                const targetTop = target.getBoundingClientRect().top + window.scrollY - navOffset;
+                                window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
                                 setActiveSectionId(targetId);
                               }
                             }
@@ -1698,10 +1759,21 @@ export function ProfessorWebsiteBuilder() {
                         ))}
                       </ul>
                       {isEditMode && (
-                        <button type="button" className="stitch-add-btn" onClick={addPublicationItem}>
-                          <span className="material-symbols-outlined">add</span>
-                          Add Publication
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                          <button type="button" className="stitch-add-btn" onClick={addPublicationItem}>
+                            <span className="material-symbols-outlined">add</span>
+                            Add Publication
+                          </button>
+                          <button
+                            type="button"
+                            className="stitch-add-btn stitch-ai-import-trigger-btn"
+                            onClick={() => setIsAiModalOpen(true)}
+                            title="Import publications from CV / Paper PDF using AI/ML pipeline"
+                          >
+                            <span className="material-symbols-outlined">auto_awesome</span>
+                            AI Import (PDF)
+                          </button>
+                        </div>
                       )}
                       <div className="stitch-article-actions">
                         {isEditMode && (
@@ -1991,16 +2063,19 @@ export function ProfessorWebsiteBuilder() {
         </div>
       </div>
 
-      <div className="stitch-code-grid">
-        <section className="stitch-code-panel" aria-label="Template HTML output">
-          <h3>Template HTML (auto-updated)</h3>
-          <textarea value={templateCode} readOnly />
-        </section>
-        <section className="stitch-code-panel" aria-label="Template CSS output">
-          <h3>Template CSS (auto-updated)</h3>
-          <textarea value={templateCss} readOnly />
-        </section>
-      </div>
+      <NetlifyHostModal
+        isOpen={isHostModalOpen}
+        onClose={() => setIsHostModalOpen(false)}
+        html={templateCode}
+        css={templateCss}
+        suggestedName={data.profileName}
+      />
+
+      <AiPublicationModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onImportPublications={handleImportAiPublications}
+      />
     </div>
   );
 }
